@@ -8,8 +8,8 @@ public class VorTree {
     private Node root;
     private List<Point> points = new ArrayList<>();
 
-    private final static int MIN_SONS = 2;
-    private final static int MAX_SONS = 4;
+    private final static int MIN_SONS = 3;
+    private final static int MAX_SONS = 5;
 
     public VorTree(List<Point> points) {
         this.points = points;
@@ -115,7 +115,7 @@ public class VorTree {
 
                 g.setColor(new Color(0, 0, 0));
                 for (Point p : points) {
-                    g.fillOval((int)translate(p).getX() - 4, (int)translate(p).getY() - 4, 8, 8);
+                    g.fillOval((int)translate(p).getX() - 2, (int)translate(p).getY() - 2, 4, 4);
                 }
             }
 
