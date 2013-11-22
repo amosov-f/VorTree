@@ -1,3 +1,5 @@
+package ru.spbu.astro.model;
+
 import java.util.Arrays;
 
 public class Point {
@@ -63,7 +65,7 @@ public class Point {
 
     @Override
     public String toString() {
-        return "Point(" +
+        return "ru.spbu.astro.model.Point(" +
                 "coordinates = " + Arrays.toString(coordinates) +
                 ')';
     }

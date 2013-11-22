@@ -1,13 +1,23 @@
+package ru.spbu.astro.model;
+
+import ru.spbu.astro.model.Point;
+
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class Rectangle {
     private Point minVertex;
     private Point maxVertex;
 
-    public Rectangle(final List<Point> points) {
-        minVertex = points.get(0);
-        maxVertex = points.get(0);
+    public Rectangle(final Collection<Point> points) {
         for (Point p : points) {
+            if (minVertex == null) {
+                minVertex = p;
+            }
+            if (maxVertex == null) {
+                maxVertex = p;
+            }
             minVertex = minVertex.min(p);
             maxVertex = maxVertex.max(p);
         }
@@ -39,7 +49,7 @@ public class Rectangle {
 
     @Override
     public String toString() {
-        return "Rectangle(" +
+        return "ru.spbu.astro.model.Rectangle(" +
                 "minVertex = " + minVertex +
                 ", maxVertex = " + maxVertex +
                 ')';
