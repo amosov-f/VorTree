@@ -1,5 +1,7 @@
 package ru.spbu.astro.model;
 
+import math.geom2d.Point2D;
+
 import java.util.Arrays;
 
 public class Point {
@@ -61,6 +63,37 @@ public class Point {
             return get(1);
         }
         return 0;
+    }
+
+    public java.awt.Point toAwtPoint() {
+        return new java.awt.Point((int)coordinates[0], (int)coordinates[1]);
+    }
+
+    public Point2D toPoint2D() {
+        return new Point2D(coordinates[0], coordinates[1]);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Point)) {
+            return false;
+        }
+
+        Point point = (Point) o;
+
+        if (!Arrays.equals(coordinates, point.coordinates)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(coordinates);
     }
 
     @Override

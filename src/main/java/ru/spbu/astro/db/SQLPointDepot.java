@@ -38,11 +38,11 @@ public class SQLPointDepot implements PointDepot {
                 getRowMapper()
         );
 
-        Map<Integer, List<Coordinate>> id2coordinates = new HashMap<>();
+        Map<Integer, List<Coordinate>> id2coordinates = new HashMap();
 
         for (Coordinate coordinate : coordinateList) {
             if (!id2coordinates.containsKey(coordinate.getPointId())) {
-                List<Coordinate> coordinates = new ArrayList<>();
+                List<Coordinate> coordinates = new ArrayList();
                 coordinates.add(coordinate);
                 id2coordinates.put(coordinate.getPointId(), coordinates);
             } else {
