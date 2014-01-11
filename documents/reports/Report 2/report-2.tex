@@ -1,0 +1,74 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{graphics}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+
+\ifx\pdfoutput\undefined
+\usepackage{graphicx}
+\else
+\usepackage[pdftex]{graphicx}
+\fi
+
+\hoffset -2.0cm	
+\voffset -3.0cm
+\textheight 23.5cm 
+\textwidth 17.0cm
+
+\title{\bf Отчет \No 2}
+\author{Амосов Федор}
+
+\begin{document}
+	\maketitle
+	
+	\paragraph{Алгоритм \\}
+	    Дано множество $d$ мерных точек $P = \{p_i\}_{i = 1}^n$. Требуется реализовать построение VoRTree на этих точках с помощью MapReduce.
+	    
+	    Далее, привожу набросок алгоритма построения произвольного M-tree с MapReduce. База (построение листьев) не приводится.
+
+        {\tt
+            \phantom ~~ \\
+            \phantom ~$u_{min}$, $u_{max}$ = min and max number of sons    \\
+            \phantom ~$f$ = some 2--dimension function    \\
+            \phantom ~$m$ = number of java vitual machines in cluster    \\
+            
+            \noindent M-Tree(Points $P$) \{ \\
+            \phantom ~~~~$k$ = $f$($u_{min}$, $u_{max}$)    \\
+            \phantom ~~~~$S$ = get $k$ different random points from $P$      \\
+            \phantom ~~~~\{$P_i$\} = split $P$ into $m$ parts    \\
+            \phantom ~~~~\{Pair<$s_i$, $P_{s_i}$>\} = MapReduce(\{Pair<$P_i$, $S$>\})    \\  
+            \phantom ~~~~for $P_{s_i}$ in \{$P_{s_i}$\} \{   \\ 
+            \phantom ~~~~~~~~$T_{s_i}$ = M-Tree($P_{s_i}$)    \\
+            \phantom ~~~~\}    \\
+            \phantom ~~~~$T$ = hang \{$T_{s_i}$\} by new $root$    \\
+            \phantom ~~~~radius of root = min radius of ball, which contains $P$  $^*$\\
+            \phantom ~~~~return $T$    \\ 
+                     \}    \\
+            
+            \noindent map(Pair<Points $P$, Points $S$>) \{    \\
+            \phantom ~~~~for $p$ in $P$ \{    \\
+            \phantom ~~~~~~~~$s$ = closest to $p$ from $S$    \\
+            \phantom ~~~~~~~~to output: map.entry(s, p)    \\  
+            \phantom ~~~~\}    \\   
+                     \}    \\
+                     
+            \noindent reduce(Point $s$, Points $P_s$) \{    \\
+            \phantom ~~~~return map.entry($s$, $P_s$)    \\         
+                     \}
+        }
+        
+    \paragraph{Вопросы}
+        \begin{enumerate}
+            \item Правда, что мы никак не можем внутри маппера иметь доступ к каким--то <<большим глобальным>> коллекциям данных? (к примеру, чтобы все мапперы видели один и тот же объект). Видимо нет, т.к. мапперы работают на разных машинах.
+            \item Зачем нам вообще диаграмма Вороного на этапе построения VoR-Tree?
+            \item Я правильно понимаю, что мы не можем себе позволить хранить одновременно все точки в оперативной памяти? Если это так, то над некоторыми, на первый взгляд простыми действиями, придется призадуматься.
+            \item Надо научиться что--то понимать про функцию $f$ с этапа $k$ = $f$($u_{min}$, $u_{max}$).
+            \item Еще у меня есть много всяких дурацких вопросов по тому, как конкретно мы будем работать с точками. Они у нас будут храниться где--нибудь и мы будем передавать в методы только их айдишники? Или мы будем передавать сами точки? Тогда, если точки будут иметь координаты в double, то после маппера их не удастся <<склеить>> по ключам. И т.п.
+        \end{enumerate}
+	
+	
+	
+	
+\end{document}
