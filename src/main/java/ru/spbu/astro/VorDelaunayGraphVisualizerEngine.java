@@ -1,16 +1,16 @@
 package ru.spbu.astro;
 
-import ru.spbu.astro.graphics.DelaunayBinderComponent;
+import ru.spbu.astro.graphics.VorDelaunayGraphComponent;
 
 import javax.swing.*;
+import java.awt.*;
 
-public class DelaunayVisualizerEngine {
-
+public class VorDelaunayGraphVisualizerEngine {
     private static int SIZE_X = 1320;
     private static int SIZE_Y = 660;
 
     public static void main(String[] args) {
-        DelaunayBinderComponent component = new DelaunayBinderComponent(1000, 2);
+        Component component = new VorDelaunayGraphComponent(100, 2);
         JFrame frame = new JFrame();
         frame.add(component);
         frame.setSize(SIZE_X, SIZE_Y);

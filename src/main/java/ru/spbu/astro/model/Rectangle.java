@@ -2,6 +2,7 @@ package ru.spbu.astro.model;
 
 import ru.spbu.astro.model.Point;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -9,6 +10,10 @@ import java.util.List;
 public class Rectangle {
     private Point minVertex;
     private Point maxVertex;
+
+    public Rectangle(final Point[] points) {
+        this(Arrays.asList(points));
+    }
 
     public Rectangle(final Collection<Point> points) {
         for (Point p : points) {
@@ -23,19 +28,19 @@ public class Rectangle {
         }
     }
 
-    public double getX() {
+    public long getX() {
         return minVertex.get(0);
     }
 
-    public double getY() {
+    public long getY() {
         return minVertex.get(1);
     }
 
-    public double getWidth() {
+    public long getWidth() {
         return (maxVertex.get(0) - minVertex.get(0));
     }
 
-    public double getHeight() {
+    public long getHeight() {
         return (maxVertex.get(1) - minVertex.get(1));
     }
 
@@ -45,6 +50,10 @@ public class Rectangle {
 
     public Point getMaxVertex() {
         return maxVertex;
+    }
+
+    public int dim() {
+        return minVertex.dim();
     }
 
     @Override

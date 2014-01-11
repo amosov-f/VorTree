@@ -1,19 +1,14 @@
 package ru.spbu.astro.mapreduce;
 
-import com.google.common.collect.Lists;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import ru.spbu.astro.db.SQLPointDepot;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.db.PointDepot;
-import ru.spbu.astro.vortree.VorTreeBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,7 +49,7 @@ public class PointMapper extends Mapper<LongWritable, Text, IntWritable, IntWrit
             if (closestId == null) {
                 closestId = pivotEntry.getKey();
             }
-            if (p.distanceTo(s) < p.distanceTo(id2pivot.get(closestId))) {
+            if (p.distance2To(s) < p.distance2To(id2pivot.get(closestId))) {
                 closestId = pivotEntry.getKey();
             }
         }

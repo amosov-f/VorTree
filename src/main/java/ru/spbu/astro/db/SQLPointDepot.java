@@ -111,9 +111,9 @@ public class SQLPointDepot implements PointDepot {
     private class Coordinate {
         private int pointId;
         private int index;
-        private double value;
+        private long value;
 
-        private Coordinate(int pointId, int index, double value) {
+        private Coordinate(int pointId, int index, long value) {
             this.pointId = pointId;
             this.index = index;
             this.value = value;
@@ -135,11 +135,11 @@ public class SQLPointDepot implements PointDepot {
             this.index = index;
         }
 
-        private double getValue() {
+        private long getValue() {
             return value;
         }
 
-        private void setValue(double value) {
+        private void setValue(long value) {
             this.value = value;
         }
     }
@@ -151,7 +151,7 @@ public class SQLPointDepot implements PointDepot {
                 return new Coordinate(
                         resultSet.getInt("point_id"),
                         resultSet.getInt("coordinate_index"),
-                        resultSet.getDouble("value")
+                        resultSet.getLong("value")
                 );
             }
         };

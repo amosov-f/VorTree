@@ -2,8 +2,8 @@ package ru.spbu.astro;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import ru.spbu.astro.delaunay.DelaunayComponent;
 import ru.spbu.astro.model.Point;
+import ru.spbu.astro.utility.PointGenerator;
 import ru.spbu.astro.vortree.VorTreeBuilder;
 
 import javax.swing.*;
@@ -23,12 +23,9 @@ public class VorTreeBuilderEngine {
         VorTreeBuilder tree = (VorTreeBuilder)context.getBean("vorTreeBuilder");
 
         List<Point> points = new ArrayList();
-        for (int i = 0; i < POINTS_COUNT / 2; ++i) {
-            points.add(new Point(new double[]{new Random().nextGaussian(), new Random().nextGaussian()}));
-        }
-        for (int i = 0; i < POINTS_COUNT / 2; ++i) {
-            points.add(new Point(new double[]{new Random().nextGaussian() + 4, new Random().nextGaussian()}));
-        }
+        points.addAll(PointGenerator.nextGaussians(POINTS_COUNT / 2));
+        points.addAll(PointGenerator.nextGaussians(POINTS_COUNT / 2, 44, 0));
+
 
         tree.build(points);
         Component component = tree.getComponent(SIZE_X, SIZE_Y);

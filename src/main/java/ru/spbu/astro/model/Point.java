@@ -1,25 +1,33 @@
 package ru.spbu.astro.model;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Longs;
 import math.geom2d.Point2D;
+import org.apache.commons.collections.iterators.ArrayIterator;
 
 import java.util.Arrays;
+import java.util.Iterator;
 
-public class Point {
-    private double[] coordinates;
+public class Point implements Iterable<Double> {
+    private long[] coordinates;
 
     public Point(int dim) {
-        coordinates = new double[dim];
+        coordinates = new long[dim];
     }
 
-    public Point(double[] coordinates) {
+    public Point(long[] coordinates) {
         this.coordinates = coordinates;
     }
 
-    public double get(int i) {
+    public Point(long x, long y) {
+        coordinates = new long[]{x, y};
+    }
+
+    public long get(int i) {
         return coordinates[i];
     }
 
-    public void set(int i, double val) {
+    public void set(int i, long val) {
         coordinates[i] = val;
     }
 
@@ -27,12 +35,16 @@ public class Point {
         return coordinates.length;
     }
 
-    public double distanceTo(final Point other) {
-        double result = 0.0;
+    public long distance2To(final Point other) {
+        long distance2 = 0;
         for (int i = 0; i < dim(); ++i) {
-            result += Math.pow(get(i) - other.get(i), 2);
+            distance2 += Math.pow(get(i) - other.get(i), 2);
         }
-        return Math.sqrt(result);
+        return distance2;
+    }
+
+    public long sqr() {
+        return distance2To(new Point(dim()));
     }
 
     public Point min(final Point other) {
@@ -51,14 +63,14 @@ public class Point {
         return result;
     }
 
-    public double getX() {
+    public long getX() {
         if (dim() > 0) {
             return get(0);
         }
         return 0;
     }
 
-    public double getY() {
+    public long getY() {
         if (dim() > 1) {
             return get(1);
         }
@@ -101,5 +113,10 @@ public class Point {
         return "ru.spbu.astro.model.Point(" +
                 "coordinates = " + Arrays.toString(coordinates) +
                 ')';
+    }
+
+    @Override
+    public Iterator iterator() {
+        return Longs.asList(coordinates).iterator();
     }
 }
