@@ -2,11 +2,7 @@ package ru.spbu.astro.delaunay;
 
 import com.google.common.primitives.Ints;
 import javafx.util.Pair;
-import math.geom2d.Point2D;
-import math.geom2d.conic.Circle2D;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.math3.fraction.BigFraction;
-import org.apache.commons.math3.fraction.Fraction;
 import org.apache.commons.math3.linear.ArrayFieldVector;
 import org.apache.commons.math3.linear.BlockFieldMatrix;
 import org.apache.commons.math3.linear.FieldLUDecomposition;

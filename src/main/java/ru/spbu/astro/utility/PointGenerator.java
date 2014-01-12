@@ -38,9 +38,7 @@ public class PointGenerator {
         for (int i = 0; i < n; ++i) {
             Point p = new Point(center.dim());
             for (int d = 0; d < p.dim(); ++d) {
-
                 p.set(d, (long) new RandomDataGenerator().nextGaussian(center.get(d), sigma));
-                System.out.println(p.get(d));
             }
             points.add(p);
         }
