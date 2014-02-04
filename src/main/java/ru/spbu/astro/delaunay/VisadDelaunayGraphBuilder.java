@@ -56,7 +56,7 @@ public class VisadDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
             }
 
             for (int t = 0; t < delaunay.Tri.length; ++t) {
-                triangles.add(new Triangle(toPointIds(delaunay.Tri[t])));
+                simplexes.add(new Simplex(toPointIds(delaunay.Tri[t])));
             }
         }
 
@@ -67,39 +67,6 @@ public class VisadDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
             }
             return ids;
         }
-
-        /*@Override
-        public List<Integer> getBorderVertices() {
-            if (delaunay == null) {
-                return new ArrayList();
-            }
-
-            List<Integer> borderVertices = new ArrayList();
-            for (int v = 0; v < delaunay.Vertices.length; ++v) {
-                Map<Integer, Integer> neibCount = new HashMap();
-                for (int i = 0; i < delaunay.Vertices[v].length; ++i) {
-                    int t = delaunay.Vertices[v][i];
-                    for (int j = 0; j < delaunay.Edges[t].length; ++j) {
-                        if (!neibCount.containsKey(delaunay.Edges[t][j])) {
-                            neibCount.put(delaunay.Edges[t][j], 1);
-                        } else {
-                            neibCount.put(delaunay.Edges[t][j], neibCount.get(delaunay.Edges[t][j]) + 1);
-                        }
-                    }
-                }
-                int count2 = 0;
-                for (Integer count : neibCount.values()) {
-                    if (count == 2) {
-                        count2++;
-
-                    }
-                }
-                if (count2 != delaunay.Vertices[v].length) {
-                    borderVertices.add(index2pointId.get(v));
-                }
-            }
-            return borderVertices;
-        }   */
 
         @Override
         public String toString() {

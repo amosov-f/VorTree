@@ -2,13 +2,8 @@ package ru.spbu.astro.delaunay;
 
 import com.google.common.primitives.Ints;
 import javafx.util.Pair;
-import org.apache.commons.math3.fraction.BigFraction;
-import org.apache.commons.math3.linear.ArrayFieldVector;
-import org.apache.commons.math3.linear.BlockFieldMatrix;
-import org.apache.commons.math3.linear.FieldLUDecomposition;
-import ru.spbu.astro.model.Graph;
-import ru.spbu.astro.model.Point;
-import ru.spbu.astro.model.Rectangle;
+import ru.spbu.astro.graphics.Framable;
+import ru.spbu.astro.model.*;
 
 import java.util.*;
 
@@ -89,149 +84,24 @@ public abstract class AbstractDelaunayGraphBuilder {
         return split(id2point.keySet(), 0);
     }
 
-    public List<Point> getPoints(final Collection<Integer> pointIds) {
-        List<Point> points = new ArrayList();
-        for (Integer pointId : pointIds) {
-            points.add(id2point.get(pointId));
-        }
-        return points;
-    }
 
-    public class Edge {
-        private final Point first;
-        private final Point second;
+    public abstract class AbstractDelaunayGraph extends Graph implements Framable {
 
-        public Edge(final Graph.Edge edge) {
-            first = id2point.get(edge.getFirst());
-            second = id2point.get(edge.getSecond());
-        }
-
-        public Point getFirst() {
-            return first;
-        }
-
-        public Point getSecond() {
-            return second;
-        }
-    }
-
-    public class Triangle {
-        List<Point> vertices = new ArrayList();
-        int level;
-
-        public Triangle(AbstractDelaunayGraph.Triangle triangle) {
-            this.level = triangle.level;
-            for (int vertexId : triangle.getVertices()) {
-                vertices.add(id2point.get(vertexId));
-            }
-        }
-
-        public int getLevel() {
-            return level;
-        }
-
-        public List<Point> getVertices() {
-            return vertices;
-        }
-
-        public boolean isCreep(final Collection<Integer> pointIds) {
-
-            BigFraction[][] f = new BigFraction[DIM][DIM];
-
-            for (int i = 0; i < f.length; ++i) {
-                for (int j = 0; j < f[i].length; ++j) {
-                    f[i][j] = new BigFraction(vertices.get(i + 1).get(j) - vertices.get(0).get(j));
-                }
-            }
-
-            BigFraction[] b = new BigFraction[DIM];
-            for (int i = 0; i < b.length; ++i) {
-                b[i] = new BigFraction(vertices.get(i + 1).sqr() - vertices.get(0).sqr(), 2L);
-            }
-
-            FieldLUDecomposition<BigFraction> decomposition = new FieldLUDecomposition(new BlockFieldMatrix<BigFraction>(f));
-            BigFraction[] center = decomposition.getSolver().solve(new ArrayFieldVector(b)).toArray();
-            BigFraction radius2 = distance2(center, vertices.get(0));
-
-            for (int pointId : pointIds) {
-                if (radius2.compareTo(distance2(center, id2point.get(pointId))) == 1) {
-                    //System.out.println(Math.sqrt(radius2.doubleValue()));
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private BigFraction distance2(BigFraction[] p1, Point p2) {
-            BigFraction distance2 = BigFraction.ZERO;
-            for (int i = 0; i < p1.length; ++i) {
-                BigFraction cur = p1[i].subtract(p2.get(i));
-                cur = cur.multiply(cur);
-                distance2 = distance2.add(cur);
-            }
-            return distance2;
-        }
-
-        public boolean containsPoint() {
-            long x1 = vertices.get(0).getX();
-            long y1 = vertices.get(0).getY();
-            long x2 = vertices.get(1).getX();
-            long y2 = vertices.get(1).getY();
-            long x3 = vertices.get(2).getX();
-            long y3 = vertices.get(2).getY();
-
-            for (Point p : id2point.values()) {
-                if (p.equals(vertices.get(0)) || p.equals(vertices.get(1)) || p.equals(vertices.get(2))) {
-                    continue;
-                }
-
-                long tx = p.getX();
-                long ty = p.getY();
-
-                long f3 = (tx - x1) * (y1 - y2) - (ty - y1) * (x1 - x2);
-                long f1 = (tx - x2) * (y2 - y3) - (ty - y2) * (x2 - x3);
-                long f2 = (tx - x3) * (y3 - y1) - (ty - y3) * (x3 - x1);
-
-                if ((f1 >= 0 && f2 >= 0 && f3 >= 0) || (f1 <= 0 && f2 <= 0 && f3 <= 0)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-    }
-
-
-    public abstract class AbstractDelaunayGraph extends Graph {
-        Set<Triangle> triangles = new HashSet();
-
-        AbstractDelaunayGraph(final Collection<Integer> pointIds) {
-            //System.out.println("cur: " + pointIds);
-            if (pointIds.size() <= DIM) {
-                for (int u : pointIds) {
-                    for (int v : pointIds) {
-                        addEdge(u, v);
-                    }
-                }
-            }
-        }
-
-        public class Triangle {
+        public class Simplex {
             private int[] vertices;
             private int level;
 
-            public Triangle(int[] vertices, int level) {
+            public Simplex(int[] vertices, int level) {
                 this.vertices = vertices;
                 Arrays.sort(vertices);
                 this.level = level;
             }
 
-            public Triangle(int[] vertices) {
+            public Simplex(int[] vertices) {
                 this(vertices, 0);
             }
 
-            public Triangle(Collection<Integer> vertices) {
+            public Simplex(Collection<Integer> vertices) {
                 this.vertices = Ints.toArray(vertices);
             }
 
@@ -257,26 +127,16 @@ public abstract class AbstractDelaunayGraphBuilder {
                 return g;
             }
 
-            public boolean isAjacentTo(Triangle other) {
-                int count = 0;
-                for (int v : other.vertices) {
-                    if (Arrays.binarySearch(vertices, v) == -1) {
-                        count++;
-                    }
-                }
-                return count == 1;
-            }
-
-            public Collection<Triangle> getSideTriangles() {
-                Collection<Triangle> sideTriangles = new ArrayList();
+            public Collection<Simplex> getSideTriangles() {
+                Collection<Simplex> sideSimplexes = new ArrayList();
 
                 for (int i = 0; i < vertices.length; ++i) {
                     List<Integer> sideVertices = new ArrayList(Ints.asList(vertices));
                     sideVertices.remove(i);
-                    sideTriangles.add(new Triangle(sideVertices));
+                    sideSimplexes.add(new Simplex(sideVertices));
                 }
 
-                return sideTriangles;
+                return sideSimplexes;
             }
 
 
@@ -285,17 +145,13 @@ public abstract class AbstractDelaunayGraphBuilder {
                 if (this == o) {
                     return true;
                 }
-                if (!(o instanceof Triangle)) {
+                if (!(o instanceof Simplex)) {
                     return false;
                 }
 
-                Triangle triangle = (Triangle) o;
+                Simplex simplex = (Simplex) o;
 
-                if (!Arrays.equals(vertices, triangle.vertices)) {
-                    return false;
-                }
-
-                return true;
+                return Arrays.equals(vertices, simplex.vertices);
             }
 
             @Override
@@ -305,19 +161,65 @@ public abstract class AbstractDelaunayGraphBuilder {
 
             @Override
             public String toString() {
-                return "Triangle(" +
+                return "Simplex(" +
                         "vertices = " + Arrays.toString(vertices) +
                         ')';
             }
         }
 
+        Collection<Integer> pointIds;
+        Set<Simplex> simplexes = new HashSet();
+
+        AbstractDelaunayGraph(final Collection<Integer> pointIds) {
+            this.pointIds = pointIds;
+            if (pointIds.size() <= DIM) {
+                for (int u : pointIds) {
+                    for (int v : pointIds) {
+                        addEdge(u, v);
+                    }
+                }
+            }
+        }
+
+        public Collection<Integer> getBindPointIds() {
+            return getBindPointIds(id2point.keySet());
+        }
+
+        public Collection<Integer> getBindPointIds(Collection<Integer> pointIds) {
+            Collection<Integer> bindPointIds = new HashSet(getBorderVertices());
+            for (Simplex simplex : getCreepTriangles(pointIds)) {
+                bindPointIds.addAll(simplex.getVertices());
+            }
+            return bindPointIds;
+        }
+
+        public Graph removeCreepTriangles(Collection<Integer> pointIds) {
+            Graph g = new Graph();
+            for (Simplex simplex : getCreepTriangles(pointIds)) {
+                removeGraph(simplex.toGraph());
+                simplexes.remove(simplex);
+                g.addGraph(simplex.toGraph());
+            }
+            return g;
+        }
+
+        public Collection<Simplex> getCreepTriangles(Collection<Integer> pointIds) {
+            Collection<Simplex> creepSimplexes = new ArrayList();
+            for (Simplex t : getSimplexes()) {
+                if (isCreep(t, pointIds)) {
+                    creepSimplexes.add(t);
+                }
+            }
+            return creepSimplexes;
+        }
+
         public Collection<Integer> getBorderVertices() {
             Set<Integer> borderVertices = new HashSet();
 
-            Map<Triangle, Integer> count = new HashMap();
+            Map<Simplex, Integer> count = new HashMap();
 
-            for (Triangle t : triangles) {
-                for (Triangle side : t.getSideTriangles()) {
+            for (Simplex t : simplexes) {
+                for (Simplex side : t.getSideTriangles()) {
                     if (!count.containsKey(side)) {
                         count.put(side, 0);
                     }
@@ -325,7 +227,7 @@ public abstract class AbstractDelaunayGraphBuilder {
                 }
             }
 
-            for (Map.Entry<Triangle, Integer> entry : count.entrySet()) {
+            for (Map.Entry<Simplex, Integer> entry : count.entrySet()) {
                 if (entry.getValue() == 1) {
                     borderVertices.addAll(entry.getKey().getVertices());
                 }
@@ -334,92 +236,82 @@ public abstract class AbstractDelaunayGraphBuilder {
             return borderVertices;
         }
 
-        public Collection<Triangle> getTriangles() {
-            /*Set<Triangle> triangles = new HashSet();
+        public Collection<Simplex> getSimplexes() {
+            /*Set<Simplex> simplexes = new HashSet();
             for (int u : neighbors.keySet()) {
                 for (int v : neighbors.get(u)) {
                     for (int t : neighbors.get(u)) {
                         if (containsEdge(v, t)) {
-                            Triangle triangle = new Triangle(new int[]{u, v, t});
-                            if (!new AbstractDelaunayGraphBuilder.Triangle(triangle).containsPoint()) {
-                                triangles.add(triangle);
+                            Simplex simplex = new Simplex(new int[]{u, v, t});
+                            if (!new AbstractDelaunayGraphBuilder.Simplex(simplex).containsPoint()) {
+                                simplexes.add(simplex);
                             }
                         }
                     }
                 }
             }     */
-            return triangles;
+            return simplexes;
         }
 
-        public Collection<AbstractDelaunayGraphBuilder.Triangle> getPointTriangles() {
-            Collection<AbstractDelaunayGraphBuilder.Triangle> triangles = new ArrayList();
-            for (Triangle triangle : getTriangles()) {
-                triangles.add(new AbstractDelaunayGraphBuilder.Triangle(triangle));
+        public Collection<ru.spbu.astro.model.Simplex> getPointTriangles() {
+            Collection<ru.spbu.astro.model.Simplex> simplexes = new ArrayList();
+            for (Simplex t : getSimplexes()) {
+                simplexes.add(new ru.spbu.astro.model.Simplex(getPoints(t)));
             }
-            return triangles;
+            return simplexes;
         }
 
-        public Collection<Triangle> getCreepTriangles(Collection<Integer> pointIds) {
-            Collection<Triangle> creepTriangles = new ArrayList();
-            for (Triangle triangle : getTriangles()) {
-                if (new AbstractDelaunayGraphBuilder.Triangle(triangle).isCreep(pointIds)) {
-                    creepTriangles.add(triangle);
-                }
+        public Collection<Simplex> getCreepTriangles() {
+            return getCreepTriangles(pointIds);
+        }
+
+        public Collection<ru.spbu.astro.model.Simplex> getCreepPointTriangles() {
+            Collection<ru.spbu.astro.model.Simplex> creepSimplexes = new ArrayList();
+            for (Simplex t : getCreepTriangles(id2point.keySet())) {
+                creepSimplexes.add(new ru.spbu.astro.model.Simplex(getPoints(t)));
             }
-            return creepTriangles;
-        }
-
-        public Collection<Triangle> getCreepTriangles() {
-            return getCreepTriangles(id2point.keySet());
-        }
-
-        public Collection<AbstractDelaunayGraphBuilder.Triangle> getCreepPointTriangles(Collection<Integer> pointIds) {
-            Collection<AbstractDelaunayGraphBuilder.Triangle> creepTriangles = new ArrayList();
-            for (Triangle triangle : getCreepTriangles(pointIds)) {
-                creepTriangles.add(new AbstractDelaunayGraphBuilder.Triangle(triangle));
-            }
-            return creepTriangles;
-        }
-
-        public Collection<AbstractDelaunayGraphBuilder.Triangle> getCreepPointTriangles() {
-            return getCreepPointTriangles(id2point.keySet());
-        }
-
-        public Collection<Integer> getBindPointIds(Collection<Integer> pointIds) {
-            Collection<Integer> bindPointIds = new HashSet(getBorderVertices());
-            for (AbstractDelaunayGraph.Triangle triangle : getCreepTriangles(pointIds)) {
-                bindPointIds.addAll(triangle.getVertices());
-            }
-            return bindPointIds;
-        }
-
-        public Collection<Integer> getBindPointIds() {
-            return getBindPointIds(id2point.keySet());
+            return creepSimplexes;
         }
 
 
-        public Graph removeCreepTriangles(Collection<Integer> pointIds) {
-            Graph g = new Graph();
-            //System.out.println("rm " + pointIds + " " + triangles);
-            for (AbstractDelaunayGraph.Triangle triangle : getCreepTriangles(pointIds)) {
-                //System.out.println("creep: " + triangle);
-                removeGraph(triangle.toGraph());
-                triangles.remove(triangle);
-                g.addGraph(triangle.toGraph());
-            }
-            return g;
-        }
 
-        public List<AbstractDelaunayGraphBuilder.Edge> getPointEdges() {
-            List<AbstractDelaunayGraphBuilder.Edge> edges = new ArrayList();
+        public List<Line> getPointEdges() {
+            List<Line> edges = new ArrayList();
             for (Edge edge : getEdges()) {
-                edges.add(new AbstractDelaunayGraphBuilder.Edge(edge));
+                edges.add(new Line(id2point.get(edge.getFirst()), id2point.get(edge.getSecond())));
             }
             return edges;
         }
 
-        public Rectangle getRectangle() {
-            return new Rectangle(id2point.values());
+        public List<Point> getPoints() {
+            return getPoints(pointIds);
+        }
+
+        public List<Point> getPoints(Collection<Integer> pointIds) {
+            List<Point> points = new ArrayList();
+            for (Integer pointId : pointIds) {
+                points.add(id2point.get(pointId));
+            }
+            return points;
+        }
+
+        public List<Point> getPoints(Simplex t) {
+            return getPoints(t.getVertices());
+        }
+
+        public boolean isCreep(Simplex t, Collection<Integer> pointIds) {
+            Ball b = new Ball(getPoints(t));
+            for (int pointId : pointIds) {
+                if (b.contains(id2point.get(pointId))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public Rectangle getFrameRectangle() {
+            return new Rectangle(getPoints());
         }
 
         @Override

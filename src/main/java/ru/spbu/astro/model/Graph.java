@@ -107,6 +107,10 @@ public class Graph implements Iterable<Graph.Edge> {
         return true;
     }
 
+    public Collection<Integer> getVertices() {
+        return neighbors.keySet();
+    }
+
     public List<Edge> getEdges() {
         List<Edge> edges = new ArrayList();
         for (Map.Entry<Integer, Set<Integer>> entry : neighbors.entrySet()) {

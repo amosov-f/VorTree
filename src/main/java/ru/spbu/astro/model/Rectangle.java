@@ -1,21 +1,20 @@
 package ru.spbu.astro.model;
 
+import org.w3c.dom.css.Rect;
+import ru.spbu.astro.graphics.Framable;
 import ru.spbu.astro.model.Point;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-public class Rectangle {
+public class Rectangle implements Framable {
     private Point minVertex;
     private Point maxVertex;
 
-    public Rectangle(final Point[] points) {
+    public Rectangle(Point... points) {
         this(Arrays.asList(points));
     }
 
-    public Rectangle(final Collection<Point> points) {
+    public Rectangle(Collection<Point> points) {
         for (Point p : points) {
             if (minVertex == null) {
                 minVertex = p;
@@ -28,20 +27,24 @@ public class Rectangle {
         }
     }
 
-    public long getX() {
-        return minVertex.get(0);
+    public Rectangle add(Rectangle rect) {
+        return new Rectangle(minVertex.min(rect.getMinVertex()), maxVertex.max(rect.getMaxVertex()));
     }
 
-    public long getY() {
-        return minVertex.get(1);
+    public int getX() {
+        return minVertex.getX();
     }
 
-    public long getWidth() {
-        return (maxVertex.get(0) - minVertex.get(0));
+    public int getY() {
+        return minVertex.getY();
     }
 
-    public long getHeight() {
-        return (maxVertex.get(1) - minVertex.get(1));
+    public int getWidth() {
+        return maxVertex.getX() - minVertex.getX();
+    }
+
+    public int getHeight() {
+        return maxVertex.getY() - minVertex.getY();
     }
 
     public Point getMinVertex() {
@@ -56,11 +59,20 @@ public class Rectangle {
         return minVertex.dim();
     }
 
+    public Point getCenter() {
+        return minVertex.add(maxVertex).multiply(0.5);
+    }
+
     @Override
     public String toString() {
         return "ru.spbu.astro.model.Rectangle(" +
                 "minVertex = " + minVertex +
                 ", maxVertex = " + maxVertex +
                 ')';
+    }
+
+    @Override
+    public Rectangle getFrameRectangle() {
+        return this;
     }
 }

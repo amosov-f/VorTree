@@ -1,22 +1,20 @@
 package ru.spbu.astro.model;
 
-import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Longs;
-import math.geom2d.Point2D;
-import org.apache.commons.collections.iterators.ArrayIterator;
+import ru.spbu.astro.graphics.Framable;
 
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class Point implements Iterable<Double> {
+public class Point implements Iterable<Long>, Framable {
     private long[] coordinates;
 
     public Point(int dim) {
         coordinates = new long[dim];
     }
 
-    public Point(long[] coordinates) {
-        this.coordinates = coordinates;
+    public Point(long... coordinates) {
+        this.coordinates = coordinates.clone();
     }
 
     public Point(long x, long y) {
@@ -63,16 +61,16 @@ public class Point implements Iterable<Double> {
         return result;
     }
 
-    public long getX() {
+    public int getX() {
         if (dim() > 0) {
-            return get(0);
+            return (int) get(0);
         }
         return 0;
     }
 
-    public long getY() {
+    public int getY() {
         if (dim() > 1) {
-            return get(1);
+            return (int) get(1);
         }
         return 0;
     }
@@ -81,8 +79,62 @@ public class Point implements Iterable<Double> {
         return new java.awt.Point((int)coordinates[0], (int)coordinates[1]);
     }
 
-    public Point2D toPoint2D() {
-        return new Point2D(coordinates[0], coordinates[1]);
+    public Point fill(long val) {
+        Point p = new Point(dim());
+        for (int i = 0; i < p.dim(); ++i) {
+            p.set(i, val);
+        }
+        return p;
+    }
+
+    public Point add(Point p) throws IllegalArgumentException {
+        if (dim() != p.dim()) {
+            throw new IllegalArgumentException("Dimensions of points must be equal");
+        }
+
+        Point sum = new Point(dim());
+        for (int i = 0; i < sum.dim(); ++i) {
+            sum.set(i, get(i) + p.get(i));
+        }
+        return sum;
+    }
+
+    public Point add(long shift) {
+        return add(new Point(dim()).fill(shift));
+    }
+
+    public Point add(long... p) {
+        return add(new Point(p));
+    }
+
+    public Point substract(Point p) {
+        return add(p.multiply(-1));
+    }
+
+    public Point multiply(double scale) {
+        Point mult = new Point(dim());
+        for (int i = 0; i < mult.dim(); ++i) {
+            mult.set(i, (long) (get(i) * scale));
+        }
+        return mult;
+    }
+
+    public Point multiply(long scale) {
+        Point mult = new Point(dim());
+        for (int i = 0; i < mult.dim(); ++i) {
+            mult.set(i, get(i) * scale);
+        }
+        return mult;
+    }
+
+
+
+    public long multiply(Point p) {
+        long mult = 0;
+        for (int i = 0; i < Math.min(dim(), p.dim()); ++i) {
+            mult += get(i) * p.get(i);
+        }
+        return mult;
     }
 
     @Override
@@ -96,11 +148,8 @@ public class Point implements Iterable<Double> {
 
         Point point = (Point) o;
 
-        if (!Arrays.equals(coordinates, point.coordinates)) {
-            return false;
-        }
+        return Arrays.equals(coordinates, point.coordinates);
 
-        return true;
     }
 
     @Override
@@ -110,7 +159,7 @@ public class Point implements Iterable<Double> {
 
     @Override
     public String toString() {
-        return "ru.spbu.astro.model.Point(" +
+        return "Point(" +
                 "coordinates = " + Arrays.toString(coordinates) +
                 ')';
     }
@@ -118,5 +167,10 @@ public class Point implements Iterable<Double> {
     @Override
     public Iterator iterator() {
         return Longs.asList(coordinates).iterator();
+    }
+
+    @Override
+    public Rectangle getFrameRectangle() {
+        return new Rectangle(new Point[]{this});
     }
 }

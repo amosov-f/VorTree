@@ -2,12 +2,11 @@ package ru.spbu.astro.delaunay;
 
 import ru.spbu.astro.model.Point;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 public class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
+    public static Map<Integer, Integer> count = new HashMap();
+
     public NativeDelaunayGraphBuilder(Collection<Point> points, int m) {
         super(points, m);
     }
@@ -30,16 +29,21 @@ public class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
             }
 
             if (pointIds.size() == DIM + 1) {
-                Triangle t = new Triangle(pointIds);
+                Simplex t = new Simplex(pointIds);
                 addGraph(t.toGraph());
-                triangles.add(t);
+                simplexes.add(t);
                 return;
             }
 
             this.pointIds = new ArrayList(pointIds);
             mask = new BitSet(pointIds.size());
 
-            //System.out.println("size: " + pointIds.size());
+            System.out.println(pointIds.size());
+
+            if (!count.containsKey(pointIds.size())) {
+                count.put(pointIds.size(), 0);
+            }
+            count.put(pointIds.size(), count.get(pointIds.size()) + 1);
 
             build(0, DIM + 1);
         }
@@ -52,10 +56,10 @@ public class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
                         vertices.add(pointIds.get(i));
                     }
                 }
-                Triangle t = new Triangle(vertices);
-                if (!new AbstractDelaunayGraphBuilder.Triangle(t).isCreep(pointIds)) {
+                Simplex t = new Simplex(vertices);
+                if (!isCreep(t, pointIds)) {
                     addGraph(t.toGraph());
-                    triangles.add(t);
+                    simplexes.add(t);
                 }
                 return;
             }

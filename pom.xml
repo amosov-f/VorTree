@@ -42,6 +42,13 @@
             <version>1.0</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>visad</groupId>
+            <artifactId>delaunay</artifactId>
+            <version>1.0.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/visad.jar</systemPath>
+        </dependency>
     </dependencies>
 
 </project>
