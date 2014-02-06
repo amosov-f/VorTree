@@ -124,6 +124,15 @@ public class Graph implements Iterable<Graph.Edge>, Cloneable {
         return getEdges().iterator();
     }
 
+    @Override
+    public String toString() {
+        String str = String.valueOf(size()) + "\n";
+        for (Edge e : this) {
+            str += e.toString() + "\n";
+        }
+        return str + "\n";
+    }
+
     public static class Edge {
         private final int first;
         private final int second;
@@ -139,6 +148,11 @@ public class Graph implements Iterable<Graph.Edge>, Cloneable {
 
         public int getSecond() {
             return second;
+        }
+
+        @Override
+        public String toString() {
+            return first + " " + second;
         }
     }
 }

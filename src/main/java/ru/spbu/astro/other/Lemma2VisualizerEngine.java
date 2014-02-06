@@ -1,7 +1,7 @@
 package ru.spbu.astro.other;
 
 import ru.spbu.astro.delaunay.AbstractDelaunayGraphBuilder;
-import ru.spbu.astro.delaunay.VorDelaunayGraphBuilder;
+import ru.spbu.astro.delaunay.BindDelaunayGraphBuilder;
 import ru.spbu.astro.graphics.ClickableView;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.utility.ColorGenerator;
@@ -33,7 +33,7 @@ public class Lemma2VisualizerEngine {
             }
 
 
-            AbstractDelaunayGraphBuilder builder = new VorDelaunayGraphBuilder(points, 2);
+            AbstractDelaunayGraphBuilder builder = new BindDelaunayGraphBuilder(points, 2);
 
             AbstractDelaunayGraphBuilder.AbstractDelaunayGraph dp = builder.build(pointIds);
             AbstractDelaunayGraphBuilder.AbstractDelaunayGraph d = builder.build();

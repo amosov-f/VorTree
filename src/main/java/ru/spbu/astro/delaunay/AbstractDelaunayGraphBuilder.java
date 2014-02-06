@@ -199,11 +199,6 @@ public abstract class AbstractDelaunayGraphBuilder {
         public Rectangle getFrameRectangle() {
             return new Rectangle(getPoints());
         }
-
-        @Override
-        public String toString() {
-            return "AbstractDelaunayGraph(" + size() + ")";
-        }
     }
 
 }

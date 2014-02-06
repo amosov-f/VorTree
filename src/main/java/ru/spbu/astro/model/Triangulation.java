@@ -56,11 +56,6 @@ public class Triangulation extends Graph {
     }
 
     @Override
-    public String toString() {
-        return "Triangulation(" + size() + ")";
-    }
-
-    @Override
     public Object clone() {
         Triangulation graph = (Triangulation) super.clone();
         graph.simplexes = (HashSet) simplexes.clone();

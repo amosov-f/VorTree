@@ -4,9 +4,7 @@ import org.math.plot.FrameView;
 import org.math.plot.Plot2DPanel;
 import ru.spbu.astro.delaunay.AbstractDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.NativeDelaunayGraphBuilder;
-import ru.spbu.astro.delaunay.VorDelaunayGraphBuilder;
 import ru.spbu.astro.graphics.ClickableView;
-import ru.spbu.astro.graphics.VorDelaunayGraphView;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.utility.Plotter;
 import ru.spbu.astro.utility.PointGenerator;
@@ -28,9 +26,9 @@ public class VorTreeVisualizerEngine {
 
         @Override
         public void build() {
-            Collection<Point> points = PointGenerator.nextUniforms(100, 1000 * getWidth(), 1000 * getHeight());
+            Collection<Point> points = PointGenerator.nextUniforms(1000, 1000 * getWidth(), 1000 * getHeight());
 
-            AbstractDelaunayGraphBuilder builder = new VorDelaunayGraphBuilder(points, 2);
+            AbstractDelaunayGraphBuilder builder = new VorTreeBuilder(points, 2);
 
             AbstractDelaunayGraphBuilder.AbstractDelaunayGraph graph = builder.build();
 

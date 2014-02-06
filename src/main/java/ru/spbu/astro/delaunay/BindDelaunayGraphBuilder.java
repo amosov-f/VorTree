@@ -7,12 +7,12 @@ import ru.spbu.astro.model.Point;
 import java.util.*;
 
 @Deprecated
-public class VorDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
+public class BindDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
 
     private NativeDelaunayGraphBuilder nativeDelaunayGraphBuilder;
     private int m;
 
-    public VorDelaunayGraphBuilder(final Collection<Point> points, int m) {
+    public BindDelaunayGraphBuilder(final Collection<Point> points, int m) {
         super(points);
         this.m = m;
         nativeDelaunayGraphBuilder = new NativeDelaunayGraphBuilder(points);
@@ -45,8 +45,8 @@ public class VorDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
             Collection<Integer> bindPointIds = new HashSet();
             Graph removedGraph = new Graph();
             for (AbstractDelaunayGraph delaunayGraph : pair.getKey()) {
-                Collection<Integer> outsidePointIds = new ArrayList(pointIds);
-                outsidePointIds.removeAll(delaunayGraph.pointIds);
+                //Collection<Integer> outsidePointIds = new ArrayList(pointIds);
+                //outsidePointIds.removeAll(delaunayGraph.pointIds);
 
                 bindPointIds.addAll(delaunayGraph.getBorderVertices());
 
@@ -80,17 +80,13 @@ public class VorDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
 
             for (Simplex simplex : bindDelanayGraph.getSimplexes()) {
                 if (containsGraph(simplex.toGraph())) {
-                    int count = 0;
                     for (Edge edge : newEdges) {
                         if (simplex.toGraph().containsEdge(edge)) {
-                            count++;
+                            simplex.setLevel(level);
+                            addSimplex(simplex);
+                            break;
                         }
                     }
-                    if (count >= 1) {
-                        simplex.setLevel(level);
-                        addSimplex(simplex);
-                    }
-
                 }
             }
         }

@@ -1,8 +1,8 @@
 package ru.spbu.astro.graphics;
 
 import ru.spbu.astro.delaunay.AbstractDelaunayGraphBuilder;
+import ru.spbu.astro.delaunay.BindDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.VisadDelaunayGraphBuilder;
-import ru.spbu.astro.delaunay.VorDelaunayGraphBuilder;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.model.Simplex;
 import ru.spbu.astro.model.Rectangle;
@@ -34,7 +34,7 @@ public class VorDelaunayGraphView extends DelaunayGraphPainter {
                 new Point(new long[]{1000 * getWidth(), 1000 * getHeight()})
         );
 
-        vorDelaunayGraph = new VorDelaunayGraphBuilder(points, m).build();
+        vorDelaunayGraph = new BindDelaunayGraphBuilder(points, m).build();
         visadDelaunayGraph = new VisadDelaunayGraphBuilder(points).build();
     }
 

@@ -2,8 +2,8 @@ package ru.spbu.astro.other;
 
 import org.math.plot.FrameView;
 import org.math.plot.Plot2DPanel;
+import ru.spbu.astro.delaunay.BindDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.NativeDelaunayGraphBuilder;
-import ru.spbu.astro.delaunay.VorDelaunayGraphBuilder;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.utility.Plotter;
 import ru.spbu.astro.utility.PointGenerator;
@@ -44,12 +44,12 @@ public class AlgorithmsComparisonEngine {
                     Collection<Point> points = PointGenerator.nextUniforms(n);
 
                     NativeDelaunayGraphBuilder nativeDelaunayGraphBuilder = new NativeDelaunayGraphBuilder(points);
-                    VorDelaunayGraphBuilder vorDelaunayGraphBuilder = new VorDelaunayGraphBuilder(points, 2);
+                    BindDelaunayGraphBuilder bindDelaunayGraphBuilder = new BindDelaunayGraphBuilder(points, 2);
 
                     long t1 = System.currentTimeMillis();
                     nativeDelaunayGraphBuilder.build();
                     long t2 = System.currentTimeMillis();
-                    vorDelaunayGraphBuilder.build();
+                    bindDelaunayGraphBuilder.build();
                     long t3 = System.currentTimeMillis();
 
                     f1.put(n, f1.get(n) + (t2 - t1) / 1000.0);
