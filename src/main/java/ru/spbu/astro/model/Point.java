@@ -33,7 +33,7 @@ public class Point implements Iterable<Long>, Framable {
         return coordinates.length;
     }
 
-    public long distance2To(final Point other) {
+    public long distance2to(Point other) {
         long distance2 = 0;
         for (int i = 0; i < dim(); ++i) {
             distance2 += Math.pow(get(i) - other.get(i), 2);
@@ -42,7 +42,7 @@ public class Point implements Iterable<Long>, Framable {
     }
 
     public long sqr() {
-        return distance2To(new Point(dim()));
+        return distance2to(new Point(dim()));
     }
 
     public Point min(final Point other) {
@@ -73,10 +73,6 @@ public class Point implements Iterable<Long>, Framable {
             return (int) get(1);
         }
         return 0;
-    }
-
-    public java.awt.Point toAwtPoint() {
-        return new java.awt.Point((int)coordinates[0], (int)coordinates[1]);
     }
 
     public Point fill(long val) {

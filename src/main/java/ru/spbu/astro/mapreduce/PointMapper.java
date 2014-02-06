@@ -49,7 +49,7 @@ public class PointMapper extends Mapper<LongWritable, Text, IntWritable, IntWrit
             if (closestId == null) {
                 closestId = pivotEntry.getKey();
             }
-            if (p.distance2To(s) < p.distance2To(id2pivot.get(closestId))) {
+            if (p.distance2to(s) < p.distance2to(id2pivot.get(closestId))) {
                 closestId = pivotEntry.getKey();
             }
         }

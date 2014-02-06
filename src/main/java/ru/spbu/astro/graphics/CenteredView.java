@@ -228,13 +228,13 @@ public class CenteredView extends Component {
             }
 
             if (trianglePainter != null) {
-                for (Simplex t : graph.getPointTriangles()) {
+                for (Simplex t : graph.getPointSimplexes()) {
                     trianglePainter.paint(t, g);
                 }
             }
             if (mode != DelaunayGraphViewMode.NO_TRIANGLES) {
                 trianglePainter = new TrianglePainter(TriangleViewMode.CREEP);
-                for (Simplex t : graph.getCreepPointTriangles()) {
+                for (Simplex t : graph.getCreepPointSimplexes()) {
                     trianglePainter.paint(t, g);
                 }
             }

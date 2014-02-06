@@ -1,233 +1,172 @@
 package ru.spbu.astro.vortree;
 
-import com.google.common.base.Joiner;
-import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import ru.spbu.astro.VorTreeBuilderEngine;
-import ru.spbu.astro.db.PointDepot;
-import ru.spbu.astro.db.SQLPointDepot;
-import ru.spbu.astro.mapreduce.PointMapper;
-import ru.spbu.astro.mapreduce.PointReducer;
-import ru.spbu.astro.model.Point;
-import ru.spbu.astro.model.Rectangle;
+import ru.spbu.astro.delaunay.AbstractDelaunayGraphBuilder;
+import ru.spbu.astro.delaunay.NativeDelaunayGraphBuilder;
+import ru.spbu.astro.model.*;
 
-
-import java.awt.*;
-import java.awt.geom.Point2D;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
 import java.util.*;
-import java.util.List;
+
+public class VorTreeBuilder extends AbstractDelaunayGraphBuilder {
+    private Map<Integer, Point> id2point = new HashMap();
+    private int m;
+
+    NativeDelaunayGraphBuilder nativeDelaunayGraphBuilder;
 
 
-public class VorTreeBuilder {
-    private VorTree vorTree;
-
-    private PointDepot pointDepot;
-
-    private final static int MIN_SONS = 3;
-    private final static int MAX_SONS = 5;
-
-    public void build(List<Point> points) throws Exception {
-        pointDepot.drop();
-
-        List<Integer> ids = new ArrayList();
-        for (Point p : points) {
-            ids.add(pointDepot.add(p));
-        }
-
-        System.out.println("Building started!");
-
-        this.vorTree = new VorTree(ids);
+    public VorTreeBuilder(final Collection<Point> points, int m) {
+        super(points);
+        this.m = m;
+        nativeDelaunayGraphBuilder = new NativeDelaunayGraphBuilder(points);
     }
 
-    private class VorTree {
-        private Node root;
-        private List<Integer> pointIds = new ArrayList();
+    @Override
+    public AbstractDelaunayGraph build(Collection<Integer> pointIds, int level) {
+        return new VorTree(pointIds, m);
+    }
 
-        public VorTree(List<Integer> pointIds) throws Exception {
+    public List<Point> getPoints(Collection<Integer> pointIds) {
+        List<Point> points = new ArrayList();
+        for (int pointId : pointIds) {
+            points.add(id2point.get(pointId));
+        }
+        return points;
+    }
 
-            this.pointIds = pointIds;
+    public Point getPoint(int pointId) {
+        return id2point.get(pointId);
+    }
 
-            root = new Node(new Rectangle(pointDepot.get(pointIds).values()));
+    public class VorTree extends AbstractDelaunayGraph implements Index {
+        private List<Integer> pointIds;
 
-            if (pointIds.size() == 1) {
+        RTree rTree;
+
+
+        public VorTree(Collection<Integer> pointIds, int level) {
+            super(pointIds);
+
+            rTree = new RTree(pointIds);
+
+            if (pointIds.size() <= dim) {
                 return;
             }
 
-            int k = Math.min((MIN_SONS + MAX_SONS) / 2, pointIds.size());
+            this.pointIds = new ArrayList(pointIds);
 
-            Collections.shuffle(pointIds);
-            List<Integer> pivotIds = pointIds.subList(0, k);
+            Collections.shuffle(this.pointIds);
+            List<Integer> pivotIds = this.pointIds.subList(0, m);
 
-            List<List<Integer>> groups = processMapReduce(pointIds, pivotIds);
-
-            for (List group : groups) {
-                root.add(new VorTree(group).root);
+            VorTree pivotVorTree = (VorTree) build(pivotIds);
+            Map<Integer, Integer> pointId2pivotId = new HashMap();
+            for (int pointId : pointIds) {
+                pointId2pivotId.put(pointId, pivotVorTree.getNearestNeighbor(getPoint(pointId)));
             }
-        }
 
-        private List<List<Integer>> processMapReduce(List<Integer> pointIds, List<Integer> pivotIds) throws Exception {
-            PrintWriter fout = new PrintWriter(new FileOutputStream("input.txt"));
-            for (Integer id : pointIds) {
-                fout.println(id);
+            Map<Integer, List<Integer>> pivotId2pointIds = new HashMap();
+            for (int pointId : pointId2pivotId.keySet()) {
+                pivotId2pointIds.get(pointId2pivotId.get(pointId));
             }
-            fout.flush();
 
-            Configuration configuration = new Configuration();
-            configuration.set("pivotIds", Joiner.on(' ').join(pivotIds));
+            Collection<List<Integer>> cells = pivotId2pointIds.values();
 
-            Job job = new Job(configuration);
+            ArrayList<VorTree> vorTrees = new ArrayList();
+            for (List<Integer> cell : cells) {
+                vorTrees.add((VorTree) build(cell));
 
-            job.setJarByClass(VorTreeBuilderEngine.class);
-            job.setMapperClass(PointMapper.class);
-            job.setReducerClass(PointReducer.class);
+            }
 
-            job.setInputFormatClass(TextInputFormat.class);
+            Collection<Integer> bindPointIds = new HashSet();
+            Graph removedGraph = new Graph();
 
-            job.setMapOutputKeyClass(IntWritable.class);
-            job.setMapOutputValueClass(IntWritable.class);
-            job.setOutputKeyClass(NullWritable.class);
-            job.setOutputValueClass(Text.class);
+            for (VorTree vorTree : vorTrees) {
+                //ArrayList outsidePointIds = new ArrayList(pointIds);
+                //outsidePointIds.removeAll(t.pointIds);
+                AbstractDelaunayGraph g = (AbstractDelaunayGraph) vorTree.clone();
+                bindPointIds.addAll(g.getBorderVertices());
+                removedGraph.addGraph(g.removeCreepSimplexes(vorTree.pointIds));
+                addTriangulation(g);
+            }
 
-            FileUtils.deleteDirectory(new File("output"));
-            FileInputFormat.addInputPath(job, new Path("input.txt"));
-            FileOutputFormat.setOutputPath(job, new Path("output"));
+            bindPointIds.addAll(removedGraph.getVertices());
 
-            job.waitForCompletion(true);
+            AbstractDelaunayGraph bindDelanayGraph;
+            if (bindPointIds.size() != pointIds.size()) {
+                bindDelanayGraph = build(bindPointIds);
+            } else {
+                bindDelanayGraph = nativeDelaunayGraphBuilder.build(bindPointIds);
+            }
 
-            Scanner fin = new Scanner(new FileInputStream("output/part-r-00000"));
-            List<List<Integer>> groups = new ArrayList();
-            while (fin.hasNextLine()) {
-                List<Integer> group = new ArrayList();
-                for (String s : fin.nextLine().split("\\s+")) {
-                    group.add(Integer.valueOf(s));
+            Graph newEdges = new Graph();
+            for (Graph.Edge edge : bindDelanayGraph) {
+                int u = edge.getFirst();
+                int v = edge.getSecond();
+                if (!pointId2pivotId.get(u).equals(pointId2pivotId.get(v))) {
+                    addEdge(u, v);
+                    newEdges.addEdge(u, v);
+                } else if (removedGraph.containsEdge(u, v)) {
+                    addEdge(u, v);
                 }
-                groups.add(group);
             }
 
-            return groups;
+            for (Simplex simplex : bindDelanayGraph.getSimplexes()) {
+                if (containsGraph(simplex.toGraph())) {
+                    int count = 0;
+                    for (Graph.Edge edge : newEdges) {
+                        if (simplex.toGraph().containsEdge(edge)) {
+                            count++;
+                        }
+                    }
+                    if (count >= 1) {
+                        simplex.setLevel(level);
+                        addSimplex(simplex);
+                    }
+
+                }
+            }
+
         }
 
         @Override
-        public String toString() {
-            return toString(root, 0);
-        }
-
-        public String toString(Node u, int tab) {
-            String result = tab(tab) + u.toString();
-            if (!u.getSons().isEmpty()) {
-                result += " {\n";
-            }
-            for (Node v : u.getSons()) {
-                result += toString(v, tab + 4);
-            }
-            if (!u.getSons().isEmpty()) {
-                result += tab(tab) + "}";
-            }
-            result += "\n";
-            return result;
-        }
-
-        private class Node {
-            private Rectangle cover;
-
-            private List<Node> sons = new ArrayList();
-
-            public Node(Rectangle cover) {
-                this.cover = cover;
-            }
-
-            public void add(Node son) {
-                sons.add(son);
-            }
-
-            public List<Node> getSons() {
-                return sons;
-            }
-
-            public ru.spbu.astro.model.Rectangle getCover() {
-                return cover;
-            }
-
-            @Override
-            public String toString() {
-                return cover.toString();
-            }
-        }
-
-        public Component getComponent(final int width, final int height) {
-            return new Component() {
-                private int ALIGN = 10;
-
+        public int getNearestNeighbor(final Point p) {
+            PriorityQueue<RTree> heap = new PriorityQueue<RTree>(rTree.sons.size(), new Comparator<RTree>() {
                 @Override
-                public void paint(Graphics g) {
-                    setSize(width, height);
-                    setBounds(0, 0, width, height);
-
-                    paint(g, root, 0);
-
-                    g.setColor(new Color(0, 0, 0));
-                    for (Point p : pointDepot.get(pointIds).values()) {
-                        g.fillOval((int)translate(p).getX() - 2, (int)translate(p).getY() - 2, 4, 4);
+                public int compare(RTree v1, RTree v2) {
+                    return Long.compare(v1.cover.distance2to(p), v2.cover.distance2to(p));
+                }
+            });
+            heap.add(rTree);
+            long bestDist = Long.MAX_VALUE;
+            int bestNN = -1;
+            while (!heap.isEmpty()) {
+                RTree u = heap.poll();
+                if (u.sons.isEmpty()) {
+                    for (int pointId : u.pointIds) {
+                        if (getPoint(pointId).distance2to(p) < bestDist) {
+                            bestNN = pointId;
+                            bestDist = getPoint(pointId).distance2to(p);
+                        }
+                    }
+                    if (contains(bestNN, p)) {
+                        return bestNN;
+                    }
+                } else {
+                    for (RTree v : u.sons) {
+                        heap.add(v);
                     }
                 }
-
-                private Point2D.Double translate(ru.spbu.astro.model.Point p) {
-                    return new Point2D.Double(
-                            (p.getX() - root.getCover().getX()) / root.getCover().getWidth() * (width - 2 * ALIGN) + ALIGN,
-                            (p.getY() - root.getCover().getY()) / root.getCover().getHeight() * (height - 2 * ALIGN) + ALIGN
-                    );
-                }
-
-                private void paint(Graphics g, Node u, int level) {
-                    g.setColor(color(level));
-                    ((Graphics2D)g).setStroke(new BasicStroke(Math.max(6 - level, 1)));
-
-                    Point2D.Double minVertex = translate(u.getCover().getMinVertex());
-                    Point2D.Double maxVertex = translate(u.getCover().getMaxVertex());
-
-                    g.drawRect(
-                            (int)minVertex.getX(),
-                            (int)minVertex.getY(),
-                            (int)(maxVertex.getX() - minVertex.getX()),
-                            (int)(maxVertex.getY() - minVertex.getY())
-                    );
-
-                    for (Node v : u.getSons()) {
-                        paint(g, v, level + 1);
-                    }
-                }
-
-                private Color color(int level) {
-                    return new Color((131 * level + 100) % 256, (241 * level + 200) % 256, (271 * level + 100) % 256);
-                }
-            };
+            }
+            return -1;
         }
     }
 
-    private static String tab(int size) {
-        String result = "";
-        for (int i = 0; i < size; ++i) {
-            result += " ";
+    private class RTree {
+        private Rectangle cover;
+        private ArrayList<RTree> sons = new ArrayList();
+        private Collection<Integer> pointIds;
+
+        private RTree(Collection<Integer> pointIds) {
+            this.cover = new Rectangle(getPoints(pointIds));
+            this.pointIds = pointIds;
         }
-        return result;
-    }
-
-    public Component getComponent(final int width, final int height) {
-        return vorTree.getComponent(width, height);
-    }
-
-
-    public void setPointDepot(SQLPointDepot pointDepot) {
-        this.pointDepot = pointDepot;
     }
 }

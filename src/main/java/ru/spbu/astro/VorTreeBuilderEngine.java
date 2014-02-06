@@ -4,13 +4,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.utility.PointGenerator;
-import ru.spbu.astro.vortree.VorTreeBuilder;
+import ru.spbu.astro.vortree.RTreeBuilder;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class VorTreeBuilderEngine {
     private static int POINTS_COUNT = 100;
@@ -20,7 +19,7 @@ public class VorTreeBuilderEngine {
 
     public static void main(String[] args) throws Exception {
         ApplicationContext context = new ClassPathXmlApplicationContext("application-context.xml");
-        VorTreeBuilder tree = (VorTreeBuilder)context.getBean("vorTreeBuilder");
+        RTreeBuilder tree = (RTreeBuilder)context.getBean("vorTreeBuilder");
 
         List<Point> points = new ArrayList();
         points.addAll(PointGenerator.nextGaussians(POINTS_COUNT / 2));

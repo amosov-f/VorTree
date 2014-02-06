@@ -35,7 +35,7 @@ public class VorDelaunayGraphView extends DelaunayGraphPainter {
         );
 
         vorDelaunayGraph = new VorDelaunayGraphBuilder(points, m).build();
-        visadDelaunayGraph = new VisadDelaunayGraphBuilder(points, m).build();
+        visadDelaunayGraph = new VisadDelaunayGraphBuilder(points).build();
     }
 
     @Override
@@ -44,11 +44,11 @@ public class VorDelaunayGraphView extends DelaunayGraphPainter {
         AbstractDelaunayGraphBuilder.AbstractDelaunayGraph graph = vorDelaunayGraph;
         Rectangle rect = graph.getFrameRectangle();
 
-        for (Simplex triangle : graph.getPointTriangles()) {
+        for (Simplex triangle : graph.getPointSimplexes()) {
             paintTriangle(triangle, rect, g);
         }
 
-        //for (AbstractDelaunayGraphBuilder.Simplex triangle : graph.getCreepPointTriangles()) {
+        //for (AbstractDelaunayGraphBuilder.Simplex triangle : graph.getCreepPointSimplexes()) {
         //    paintTriangle(triangle, rect, g, new Color(150 + new Random().nextInt(106), 0, 0));
         //}
 

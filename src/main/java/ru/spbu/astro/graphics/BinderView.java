@@ -28,11 +28,10 @@ public class BinderView extends DelaunayGraphPainter {
 
     public void build() {
         delaunayGraphBuilder = new VisadDelaunayGraphBuilder(
-                PointGenerator.nextUniforms(n, 1000 * getWidth(), 1000 * getHeight()),
-                m
+                PointGenerator.nextUniforms(n, 1000 * getWidth(), 1000 * getHeight())
         );
 
-        delaunayGraphs = delaunayGraphBuilder.split().getKey();
+        delaunayGraphs = delaunayGraphBuilder.split(m).getKey();
     }
 
     @Override
@@ -66,7 +65,7 @@ public class BinderView extends DelaunayGraphPainter {
     private List<Simplex> getCreepTriangles() {
         List<Simplex> creepTriangles = new ArrayList();
         for (AbstractDelaunayGraphBuilder.AbstractDelaunayGraph delaunayGraph : delaunayGraphs) {
-            creepTriangles.addAll(delaunayGraph.getCreepPointTriangles());
+            creepTriangles.addAll(delaunayGraph.getCreepPointSimplexes());
         }
         return creepTriangles;
     }

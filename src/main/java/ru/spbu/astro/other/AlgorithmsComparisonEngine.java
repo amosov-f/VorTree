@@ -43,7 +43,7 @@ public class AlgorithmsComparisonEngine {
                 for (int t = 0; t < T; ++t) {
                     Collection<Point> points = PointGenerator.nextUniforms(n);
 
-                    NativeDelaunayGraphBuilder nativeDelaunayGraphBuilder = new NativeDelaunayGraphBuilder(points, 2);
+                    NativeDelaunayGraphBuilder nativeDelaunayGraphBuilder = new NativeDelaunayGraphBuilder(points);
                     VorDelaunayGraphBuilder vorDelaunayGraphBuilder = new VorDelaunayGraphBuilder(points, 2);
 
                     long t1 = System.currentTimeMillis();

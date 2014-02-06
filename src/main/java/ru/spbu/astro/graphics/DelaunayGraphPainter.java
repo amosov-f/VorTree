@@ -56,7 +56,7 @@ public abstract class DelaunayGraphPainter extends ClickableView {
     }
 
     public void paintCreepTriangles(AbstractDelaunayGraphBuilder.AbstractDelaunayGraph graph, Graphics g) {
-        for (Simplex t : graph.getCreepPointTriangles()) {
+        for (Simplex t : graph.getCreepPointSimplexes()) {
             paintTriangle(t, rect, g, new Color(150 + new Random().nextInt(106), 0, 0));
         }
     }

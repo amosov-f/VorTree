@@ -6,14 +6,16 @@ import ru.spbu.astro.model.Point;
 
 import java.util.*;
 
+@Deprecated
 public class VorDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
 
     private NativeDelaunayGraphBuilder nativeDelaunayGraphBuilder;
+    private int m;
 
     public VorDelaunayGraphBuilder(final Collection<Point> points, int m) {
-        super(points, m);
-
-        nativeDelaunayGraphBuilder = new NativeDelaunayGraphBuilder(points, m);
+        super(points);
+        this.m = m;
+        nativeDelaunayGraphBuilder = new NativeDelaunayGraphBuilder(points);
     }
 
     @Override
@@ -21,12 +23,9 @@ public class VorDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
         return new VorDelaunayGraph(pointIds, level);
     }
 
-
     public class VorDelaunayGraph extends AbstractDelaunayGraph {
         Collection<Integer> borderVertices = new ArrayList();
-        Set<Simplex> visitedSimplexes = new HashSet();
-        HashMap<Simplex, Collection<Simplex> > side2triangles = new HashMap();
-
+        HashMap<Simplex, Collection<Simplex> > side2simplexes = new HashMap();
 
         public VorDelaunayGraph(Collection<Integer> pointIds) {
             this(pointIds, 0);
@@ -35,14 +34,13 @@ public class VorDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
         public VorDelaunayGraph(Collection<Integer> pointIds, int level) {
             super(pointIds);
 
-            if (pointIds.size() <= DIM) {
+            if (pointIds.size() <= dim) {
                 borderVertices.addAll(pointIds);
                 return;
             }
 
-            Pair<Collection<AbstractDelaunayGraph>, Map<Integer, Integer>> pair = split(pointIds, level);
+            Pair<Collection<AbstractDelaunayGraph>, Map<Integer, Integer>> pair = split(pointIds, m, level);
             Map<Integer, Integer> pointId2pivotId = pair.getValue();
-
 
             Collection<Integer> bindPointIds = new HashSet();
             Graph removedGraph = new Graph();
@@ -50,20 +48,14 @@ public class VorDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
                 Collection<Integer> outsidePointIds = new ArrayList(pointIds);
                 outsidePointIds.removeAll(delaunayGraph.pointIds);
 
-                //bindPointIds.addAll(delaunayGraph.getBindPointIds(outsidePointIds));
                 bindPointIds.addAll(delaunayGraph.getBorderVertices());
 
-                removedGraph.addGraph(delaunayGraph.removeCreepTriangles(outsidePointIds));
+                removedGraph.addGraph(delaunayGraph.removeCreepSimplexes(pointIds));
 
-                addGraph(delaunayGraph);
-                addTriangles(delaunayGraph.getSimplexes());
+                addTriangulation(delaunayGraph);
             }
 
-
             bindPointIds.addAll(removedGraph.getVertices());
-
-
-            //System.out.println(removedGraph.getVertices().size() + " " + bindPointIds.size());
 
             AbstractDelaunayGraph bindDelanayGraph;
             if (bindPointIds.size() != pointIds.size()) {
@@ -96,7 +88,7 @@ public class VorDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
                     }
                     if (count >= 1) {
                         simplex.setLevel(level);
-                        addTriangle(simplex);
+                        addSimplex(simplex);
                     }
 
                 }
@@ -104,21 +96,19 @@ public class VorDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
         }
 
         @Override
-        public Graph removeCreepTriangles(Collection<Integer> pointIds) {
-            visitedSimplexes = new HashSet();
-
+        public Graph removeCreepSimplexes(Iterable<Integer> pointIds) {
+            HashSet<Simplex> visitedSimplexes = new HashSet();
             Graph deletedGraph = new Graph();
 
-            for (Simplex t : getBorderTriangles()) {
-                deletedGraph.addGraph(dfs(t, pointIds));
+            for (Simplex t : getBorderSimplexes()) {
+                deletedGraph.addGraph(dfs(t, visitedSimplexes, pointIds));
             }
 
             return deletedGraph;
         }
 
-        private Graph dfs(Simplex ut, Collection<Integer> pointIds) {
+        private Graph dfs(Simplex ut, HashSet<Simplex> visitedSimplexes, Iterable<Integer> pointIds) {
             if (visitedSimplexes.contains(ut)) {
-                //System.out.println(visitedSimplexes.size());
                 return new Graph();
             }
             visitedSimplexes.add(ut);
@@ -128,12 +118,12 @@ public class VorDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
             }
 
             Graph g = new Graph();
-            for (Simplex vt : getNeighborTriangles(ut)) {
-                g.addGraph(dfs(vt, pointIds));
+            for (Simplex vt : getNeighborSimplexes(ut)) {
+                g.addGraph(dfs(vt, visitedSimplexes, pointIds));
             }
 
-            for (Simplex side : ut.getSideTriangles()) {
-                side2triangles.get(side).remove(ut);
+            for (Simplex side : ut.getSides()) {
+                side2simplexes.get(side).remove(ut);
             }
 
             removeGraph(ut.toGraph());
@@ -143,36 +133,31 @@ public class VorDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
             return g;
         }
 
-        protected Collection<Simplex> getBorderTriangles() {
-            Set<Simplex> borderSimplexes = new HashSet();
-            for (Simplex side : side2triangles.keySet()) {
-                if (side2triangles.get(side).size() == 1) {
-                    borderSimplexes.addAll(side2triangles.get(side));
+        public HashSet<Simplex> getBorderSimplexes() {
+            HashSet<Simplex> borderSimplexes = new HashSet();
+            for (Simplex side : side2simplexes.keySet()) {
+                if (side2simplexes.get(side).size() == 1) {
+                    borderSimplexes.addAll(side2simplexes.get(side));
                 }
             }
             return borderSimplexes;
         }
 
-        public void addTriangle(Simplex t) {
-            simplexes.add(t);
-            for (Simplex side : t.getSideTriangles()) {
-                if (!side2triangles.containsKey(side)) {
-                    side2triangles.put(side, new HashSet());
+        @Override
+        public void addSimplex(Simplex t) {
+            super.addSimplex(t);
+            for (Simplex side : t.getSides()) {
+                if (!side2simplexes.containsKey(side)) {
+                    side2simplexes.put(side, new HashSet());
                 }
-                side2triangles.get(side).add(t);
+                side2simplexes.get(side).add(t);
             }
         }
 
-        public void addTriangles(Collection<Simplex> simplexes) {
-            for (Simplex t : simplexes) {
-                addTriangle(t);
-            }
-        }
-
-        public Collection<Simplex> getNeighborTriangles(Simplex u) {
+        public Collection<Simplex> getNeighborSimplexes(Simplex u) {
             Set<Simplex> neighborSimplexes = new HashSet();
-            for (Simplex side : u.getSideTriangles()) {
-                for (Simplex v : side2triangles.get(side)) {
+            for (Simplex side : u.getSides()) {
+                for (Simplex v : side2simplexes.get(side)) {
                     if (!u.equals(v)) {
                         neighborSimplexes.add(v);
                     }

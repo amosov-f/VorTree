@@ -63,6 +63,33 @@ public class Rectangle implements Framable {
         return minVertex.add(maxVertex).multiply(0.5);
     }
 
+    public boolean contains(Point p) {
+        if (p.dim() != dim()) {
+            return false;
+        }
+        for (int i = 0; i < p.dim(); ++i) {
+            if (p.get(i) < minVertex.get(i) ||  maxVertex.get(i) < p.get(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public long distance2to(Point p) {
+        if (contains(p)) {
+            return 0;
+        }
+
+        long distance2 = 0;
+        for (int i = 0; i < p.dim(); ++i) {
+            if (minVertex.get(i) <= p.get(i) && p.get(i) <= maxVertex.get(i)) {
+                continue;
+            }
+            distance2 += Math.min(Math.abs(p.get(i) - minVertex.get(i)), Math.abs(p.get(i) - maxVertex.get(i)));
+        }
+        return distance2;
+    }
+
     @Override
     public String toString() {
         return "ru.spbu.astro.model.Rectangle(" +

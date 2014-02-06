@@ -7,8 +7,8 @@ import java.util.*;
 public class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
     public static Map<Integer, Integer> count = new HashMap();
 
-    public NativeDelaunayGraphBuilder(Collection<Point> points, int m) {
-        super(points, m);
+    public NativeDelaunayGraphBuilder(Collection<Point> points) {
+        super(points);
     }
 
     @Override
@@ -24,11 +24,11 @@ public class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
         NativeDelaunayGraph(Collection<Integer> pointIds) {
             super(pointIds);
 
-            if (pointIds.size() <= DIM) {
+            if (pointIds.size() <= dim) {
                 return;
             }
 
-            if (pointIds.size() == DIM + 1) {
+            if (pointIds.size() == dim + 1) {
                 Simplex t = new Simplex(pointIds);
                 addGraph(t.toGraph());
                 simplexes.add(t);
@@ -45,7 +45,7 @@ public class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
             }
             count.put(pointIds.size(), count.get(pointIds.size()) + 1);
 
-            build(0, DIM + 1);
+            build(0, dim + 1);
         }
 
         private void build(int pos, int rem) {
@@ -56,10 +56,10 @@ public class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
                         vertices.add(pointIds.get(i));
                     }
                 }
-                Simplex t = new Simplex(vertices);
-                if (!isCreep(t, pointIds)) {
-                    addGraph(t.toGraph());
-                    simplexes.add(t);
+                Simplex s = new Simplex(vertices);
+                if (!isCreep(s, pointIds)) {
+                    addGraph(s.toGraph());
+                    addSimplex(s);
                 }
                 return;
             }

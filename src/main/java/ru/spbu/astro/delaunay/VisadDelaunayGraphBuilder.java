@@ -8,8 +8,8 @@ import java.util.*;
 
 public class VisadDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
 
-    public VisadDelaunayGraphBuilder(final Collection<Point> points, int m) {
-        super(points, m);
+    public VisadDelaunayGraphBuilder(final Collection<Point> points) {
+        super(points);
     }
 
     @Override
@@ -26,10 +26,10 @@ public class VisadDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
             super(pointIds);
 
             index2pointId = new ArrayList(pointIds);
-            float[][] samples = new float[DIM][pointIds.size()];
+            float[][] samples = new float[dim][pointIds.size()];
 
             for (int i = 0; i < index2pointId.size(); ++i) {
-                for (int d = 0; d < DIM; ++d) {
+                for (int d = 0; d < dim; ++d) {
                     samples[d][i] = (float) id2point.get(index2pointId.get(i)).get(d);
                 }
             }
@@ -56,7 +56,7 @@ public class VisadDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
             }
 
             for (int t = 0; t < delaunay.Tri.length; ++t) {
-                simplexes.add(new Simplex(toPointIds(delaunay.Tri[t])));
+                addSimplex(new Simplex(toPointIds(delaunay.Tri[t])));
             }
         }
 
