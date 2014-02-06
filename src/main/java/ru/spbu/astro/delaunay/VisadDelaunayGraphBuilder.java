@@ -60,10 +60,10 @@ public class VisadDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
             }
         }
 
-        private int[] toPointIds(int[] indexes) {
-            int[] ids = new int[indexes.length];
-            for (int i = 0; i < indexes.length; ++i) {
-                ids[i] = index2pointId.get(indexes[i]);
+        private ArrayList<Integer> toPointIds(int[] indexes) {
+            ArrayList<Integer> ids = new ArrayList(indexes.length);
+            for (int index : indexes) {
+                ids.add(index2pointId.get(index));
             }
             return ids;
         }

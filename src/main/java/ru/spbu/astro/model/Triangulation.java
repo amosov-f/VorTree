@@ -6,16 +6,14 @@ import java.util.*;
 
 public class Triangulation extends Graph {
     protected HashSet<Simplex> simplexes = new HashSet();
-    //protected HashMap<Simplex, Collection<Simplex> > side2triangles = new HashMap();
-
 
     public Collection<Integer> getBorderVertices() {
-        HashSet<Integer> borderVertices = new HashSet();
-        HashMap<Simplex, Integer> count = new HashMap();
-
         if (simplexes.size() == 0) {
             return getVertices();
         }
+
+        HashSet<Integer> borderVertices = new HashSet();
+        HashMap<Simplex, Integer> count = new HashMap();
 
         for (Simplex s : simplexes) {
             for (Simplex side : s.getSides()) {
@@ -41,7 +39,6 @@ public class Triangulation extends Graph {
 
     public void addTriangulation(Triangulation t) {
         addGraph(t);
-        //System.out.println("simplexes: " + t.getSimplexes().size());
         addSimplexes(t.getSimplexes());
     }
 
@@ -63,21 +60,17 @@ public class Triangulation extends Graph {
     }
 
     public static class Simplex {
-        private int[] vertices;
+        private ArrayList<Integer> vertices;
         private int level;
 
-        public Simplex(int[] vertices, int level) {
-            this.vertices = vertices;
-            Arrays.sort(vertices);
-            this.level = level;
-        }
-
-        public Simplex(int[] vertices) {
+        public Simplex(Collection<Integer> vertices) {
             this(vertices, 0);
         }
 
-        public Simplex(Collection<Integer> vertices) {
-            this.vertices = Ints.toArray(vertices);
+        public Simplex(Collection<Integer> vertices, int level) {
+            this.vertices = new ArrayList(vertices);
+            Collections.sort(this.vertices);
+            this.level = level;
         }
 
         public int getLevel() {
@@ -88,15 +81,15 @@ public class Triangulation extends Graph {
             this.level = level;
         }
 
-        public List<Integer> getVertices() {
-            return Ints.asList(vertices);
+        public ArrayList<Integer> getVertices() {
+            return (ArrayList) vertices.clone();
         }
 
         public Graph toGraph() {
             Graph g = new Graph();
-            for (int u : vertices) {
-                for (int v : vertices) {
-                    g.addEdge(u, v);
+            for (int i = 0; i < vertices.size(); ++i) {
+                for (int j = i + 1; j < vertices.size(); ++j) {
+                    g.addEdge(vertices.get(i), vertices.get(j));
                 }
             }
             return g;
@@ -105,8 +98,8 @@ public class Triangulation extends Graph {
         public ArrayList<Simplex> getSides() {
             ArrayList<Simplex> sideSimplexes = new ArrayList();
 
-            for (int i = 0; i < vertices.length; ++i) {
-                List<Integer> sideVertices = new ArrayList(Ints.asList(vertices));
+            for (int i = 0; i < vertices.size(); ++i) {
+                ArrayList<Integer> sideVertices = (ArrayList) vertices.clone();
                 sideVertices.remove(i);
                 sideSimplexes.add(new Simplex(sideVertices));
             }
@@ -119,23 +112,23 @@ public class Triangulation extends Graph {
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof Simplex)) {
+            if (o == null || getClass() != o.getClass()) {
                 return false;
             }
 
             Simplex simplex = (Simplex) o;
 
-            return Arrays.equals(vertices, simplex.vertices);
+            return vertices.equals(simplex.vertices);
         }
 
         @Override
         public int hashCode() {
-            return vertices != null ? Arrays.hashCode(vertices) : 0;
+            return vertices.hashCode();
         }
 
         @Override
         public String toString() {
-            return "Simplex(vertices = " + Arrays.toString(vertices) + ")";
+            return "Simplex(" + vertices + ")";
         }
     }
 

@@ -29,9 +29,9 @@ public class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
             }
 
             if (pointIds.size() == dim + 1) {
-                Simplex t = new Simplex(pointIds);
-                addGraph(t.toGraph());
-                simplexes.add(t);
+                Simplex s = new Simplex(pointIds);
+                addGraph(s.toGraph());
+                simplexes.add(s);
                 return;
             }
 

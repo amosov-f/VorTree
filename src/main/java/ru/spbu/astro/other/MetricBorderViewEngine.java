@@ -40,9 +40,9 @@ public class MetricBorderViewEngine extends ClickableView {
         }
 
         g.setColor(new Color(0, 0, 255));
-        g.fillOval((int)p1.getX() - 4, (int)p1.getY() - 4, 8, 8);
+        g.fillOval((int) p1.getX() - 4, (int) p1.getY() - 4, 8, 8);
 
-        g.fillOval((int)p2.getX() - 4, (int)p2.getY() - 4, 8, 8);
+        g.fillOval((int) p2.getX() - 4, (int) p2.getY() - 4, 8, 8);
     }
 
     public static double distance(Point p1, Point p2) {

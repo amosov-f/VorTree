@@ -31,19 +31,19 @@ public class Rectangle implements Framable {
         return new Rectangle(minVertex.min(rect.getMinVertex()), maxVertex.max(rect.getMaxVertex()));
     }
 
-    public int getX() {
+    public long getX() {
         return minVertex.getX();
     }
 
-    public int getY() {
+    public long getY() {
         return minVertex.getY();
     }
 
-    public int getWidth() {
+    public long getWidth() {
         return maxVertex.getX() - minVertex.getX();
     }
 
-    public int getHeight() {
+    public long getHeight() {
         return maxVertex.getY() - minVertex.getY();
     }
 

@@ -33,42 +33,38 @@ public class Point implements Iterable<Long>, Framable {
         return coordinates.length;
     }
 
-    public long distance2to(Point other) {
-        long distance2 = 0;
-        for (int i = 0; i < dim(); ++i) {
-            distance2 += Math.pow(get(i) - other.get(i), 2);
-        }
-        return distance2;
+    public long distance2to(Point p) {
+        return subtract(p).sqr();
     }
 
     public long sqr() {
-        return distance2to(new Point(dim()));
+        return multiply(this);
     }
 
-    public Point min(final Point other) {
-        Point result = new Point(dim());
+    public Point min(Point other) {
+        Point min = new Point(dim());
         for (int i = 0; i < dim(); ++i) {
-            result.set(i, Math.min(get(i), other.get(i)));
+            min.set(i, Math.min(get(i), other.get(i)));
         }
-        return result;
+        return min;
     }
 
-    public Point max(final Point other) {
-        Point result = new Point(dim());
+    public Point max(Point other) {
+        Point max = new Point(dim());
         for (int i = 0; i < dim(); ++i) {
-            result.set(i, Math.max(get(i), other.get(i)));
+            max.set(i, Math.max(get(i), other.get(i)));
         }
-        return result;
+        return max;
     }
 
-    public int getX() {
+    public long getX() {
         if (dim() > 0) {
             return (int) get(0);
         }
         return 0;
     }
 
-    public int getY() {
+    public long getY() {
         if (dim() > 1) {
             return (int) get(1);
         }
@@ -103,7 +99,7 @@ public class Point implements Iterable<Long>, Framable {
         return add(new Point(p));
     }
 
-    public Point substract(Point p) {
+    public Point subtract(Point p) {
         return add(p.multiply(-1));
     }
 
@@ -123,9 +119,11 @@ public class Point implements Iterable<Long>, Framable {
         return mult;
     }
 
+    public long multiply(Point p) throws IllegalArgumentException {
+        if (dim() != p.dim()) {
+            throw new IllegalArgumentException("Dimensions of points must be equal");
+        }
 
-
-    public long multiply(Point p) {
         long mult = 0;
         for (int i = 0; i < Math.min(dim(), p.dim()); ++i) {
             mult += get(i) * p.get(i);
@@ -145,7 +143,6 @@ public class Point implements Iterable<Long>, Framable {
         Point point = (Point) o;
 
         return Arrays.equals(coordinates, point.coordinates);
-
     }
 
     @Override
@@ -155,9 +152,7 @@ public class Point implements Iterable<Long>, Framable {
 
     @Override
     public String toString() {
-        return "Point(" +
-                "coordinates = " + Arrays.toString(coordinates) +
-                ')';
+        return "Point(" + Arrays.toString(coordinates) + ")";
     }
 
     @Override
@@ -167,6 +162,6 @@ public class Point implements Iterable<Long>, Framable {
 
     @Override
     public Rectangle getFrameRectangle() {
-        return new Rectangle(new Point[]{this});
+        return new Rectangle(this);
     }
 }

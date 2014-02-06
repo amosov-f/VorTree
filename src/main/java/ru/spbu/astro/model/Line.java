@@ -20,8 +20,8 @@ public class Line implements Framable {
     }
 
     public Point getProjection(Point p) {
-        Point del = p2.substract(p1);
-        double t = (double) del.multiply(p.substract(p1)) / del.multiply(del);
+        Point del = p2.subtract(p1);
+        double t = (double) del.multiply(p.subtract(p1)) / del.multiply(del);
         return p1.add(del.multiply(t));
     }
 
