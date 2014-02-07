@@ -8,7 +8,7 @@ import ru.spbu.astro.model.Triangulation;
 import java.util.*;
 
 @Deprecated
-public class BindDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
+public class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder {
 
     private NativeDelaunayGraphBuilder nativeDelaunayGraphBuilder;
     private int m;
@@ -24,9 +24,7 @@ public class BindDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
         return new BindDelaunayGraph(pointIds, level);
     }
 
-    public class BindDelaunayGraph extends AbstractDelaunayGraph {
-        Collection<Integer> borderVertices = new ArrayList();
-        HashMap<Simplex, Collection<Simplex> > side2simplexes = new HashMap();
+    public class BindDelaunayGraph extends WalkableDelaunayGraph {
 
         public BindDelaunayGraph(Collection<Integer> pointIds) {
             this(pointIds, 0);
@@ -88,86 +86,6 @@ public class BindDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
                     }
                 }
             }
-        }
-
-        @Override
-        public Graph removeCreepSimplexes(AbstractDelaunayGraph delaunayGraph) {
-            BindDelaunayGraph g = (BindDelaunayGraph) delaunayGraph;
-
-            HashSet<Simplex> visitedSimplexes = new HashSet();
-            Graph removedGraph = new Graph();
-
-            for (Simplex s : g.getBorderSimplexes()) {
-                removedGraph.addGraph(dfs(g, s, visitedSimplexes));
-            }
-
-            return removedGraph;
-        }
-
-        private Graph dfs(BindDelaunayGraph g, Simplex u, HashSet<Simplex> visitedSimplexes) {
-            if (visitedSimplexes.contains(u)) {
-                return new Graph();
-            }
-            visitedSimplexes.add(u);
-
-            if (!isCreep(u)) {
-                return new Graph();
-            }
-
-            Graph removedGraph = new Graph();
-            for (Simplex v : g.getNeighborSimplexes(u)) {
-                removedGraph.addGraph(dfs(g, v, visitedSimplexes));
-            }
-
-            removedGraph.addGraph(g.removeSimplex(u));
-
-            return removedGraph;
-        }
-
-        public HashSet<Simplex> getBorderSimplexes() {
-            HashSet<Simplex> borderSimplexes = new HashSet();
-            for (Simplex side : side2simplexes.keySet()) {
-                if (side2simplexes.get(side).size() == 1) {
-                    borderSimplexes.addAll(side2simplexes.get(side));
-                }
-            }
-            return borderSimplexes;
-        }
-
-        @Override
-        public void addSimplex(Simplex s) {
-            super.addSimplex(s);
-            for (Simplex side : s.getSides()) {
-                if (!side2simplexes.containsKey(side)) {
-                    side2simplexes.put(side, new HashSet());
-                }
-                side2simplexes.get(side).add(s);
-            }
-        }
-
-        @Override
-        public Graph removeSimplex(Simplex s) {
-            for (Simplex side : s.getSides()) {
-                side2simplexes.get(side).remove(s);
-            }
-            return super.removeSimplex(s);
-        }
-
-        public Collection<Simplex> getNeighborSimplexes(Simplex u) {
-            Set<Simplex> neighborSimplexes = new HashSet();
-            for (Simplex side : u.getSides()) {
-                for (Simplex v : side2simplexes.get(side)) {
-                    if (!u.equals(v)) {
-                        neighborSimplexes.add(v);
-                    }
-                }
-            }
-            return neighborSimplexes;
-        }
-
-        @Override
-        public Collection<Integer> getBorderVertices() {
-            return borderVertices;
         }
     }
 }

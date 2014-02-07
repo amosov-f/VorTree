@@ -11,7 +11,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VorTreeBuilderEngine {
+public class RTreeVisualizerEngine {
     private static int POINTS_COUNT = 100;
 
     private static int SIZE_X = 1320;

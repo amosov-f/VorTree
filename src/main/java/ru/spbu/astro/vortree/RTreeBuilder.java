@@ -9,7 +9,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import ru.spbu.astro.VorTreeBuilderEngine;
+import ru.spbu.astro.RTreeVisualizerEngine;
 import ru.spbu.astro.db.PointDepot;
 import ru.spbu.astro.db.SQLPointDepot;
 import ru.spbu.astro.mapreduce.PointMapper;
@@ -87,7 +87,7 @@ public class RTreeBuilder {
 
             Job job = new Job(configuration);
 
-            job.setJarByClass(VorTreeBuilderEngine.class);
+            job.setJarByClass(RTreeVisualizerEngine.class);
             job.setMapperClass(PointMapper.class);
             job.setReducerClass(PointReducer.class);
 

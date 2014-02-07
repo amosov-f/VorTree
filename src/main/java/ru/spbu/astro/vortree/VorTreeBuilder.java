@@ -3,14 +3,16 @@ package ru.spbu.astro.vortree;
 import com.google.common.collect.Iterables;
 import ru.spbu.astro.delaunay.AbstractDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.NativeDelaunayGraphBuilder;
+import ru.spbu.astro.delaunay.VisadDelaunayGraphBuilder;
+import ru.spbu.astro.delaunay.WalkableDelaunayGraphBuilder;
 import ru.spbu.astro.model.*;
 
 import java.util.*;
 
-public class VorTreeBuilder extends AbstractDelaunayGraphBuilder {
+public class VorTreeBuilder extends WalkableDelaunayGraphBuilder {
     private int m;
 
-    NativeDelaunayGraphBuilder nativeDelaunayGraphBuilder;
+    AbstractDelaunayGraphBuilder nativeDelaunayGraphBuilder;
 
 
     public VorTreeBuilder(final Collection<Point> points, int m) {
@@ -24,11 +26,8 @@ public class VorTreeBuilder extends AbstractDelaunayGraphBuilder {
         return new VorTree(pointIds, m);
     }
 
-    public class VorTree extends AbstractDelaunayGraph implements Index {
+    public class VorTree extends WalkableDelaunayGraph implements Index {
         private RTree rTree;
-
-        private Collection<Integer> borderVertices = new ArrayList();
-        private HashMap<Simplex, Collection<Simplex> > side2simplexes = new HashMap();
 
         private ArrayList<VorTree> sons = new ArrayList();
         private VorTree pivotVorTree;
@@ -117,86 +116,6 @@ public class VorTreeBuilder extends AbstractDelaunayGraphBuilder {
                     }
                 }
             }
-        }
-
-        @Override
-        public Graph removeCreepSimplexes(AbstractDelaunayGraph delaunayGraph) {
-            VorTree t = (VorTree) delaunayGraph;
-
-            HashSet<Simplex> visitedSimplexes = new HashSet();
-            Graph removedGraph = new Graph();
-
-            for (Simplex s : t.getBorderSimplexes()) {
-                removedGraph.addGraph(dfs(t, s, visitedSimplexes));
-            }
-
-            return removedGraph;
-        }
-
-        private Graph dfs(VorTree t, Simplex u, HashSet<Simplex> visitedSimplexes) {
-            if (visitedSimplexes.contains(u)) {
-                return new Graph();
-            }
-            visitedSimplexes.add(u);
-
-            if (!isCreep(u)) {
-                return new Graph();
-            }
-
-            Graph removedGraph = new Graph();
-            for (Simplex v : t.getNeighborSimplexes(u)) {
-                removedGraph.addGraph(dfs(t, v, visitedSimplexes));
-            }
-
-            removedGraph.addGraph(t.removeSimplex(u));
-
-            return removedGraph;
-        }
-
-        public HashSet<Simplex> getBorderSimplexes() {
-            HashSet<Simplex> borderSimplexes = new HashSet();
-            for (Simplex side : side2simplexes.keySet()) {
-                if (side2simplexes.get(side).size() == 1) {
-                    borderSimplexes.addAll(side2simplexes.get(side));
-                }
-            }
-            return borderSimplexes;
-        }
-
-        @Override
-        public void addSimplex(Simplex s) {
-            super.addSimplex(s);
-            for (Simplex side : s.getSides()) {
-                if (!side2simplexes.containsKey(side)) {
-                    side2simplexes.put(side, new HashSet());
-                }
-                side2simplexes.get(side).add(s);
-            }
-        }
-
-        @Override
-        public Graph removeSimplex(Simplex s) {
-            for (Simplex side : s.getSides()) {
-                side2simplexes.get(side).remove(s);
-            }
-            return super.removeSimplex(s);
-        }
-
-        public Collection<Simplex> getNeighborSimplexes(Simplex u) {
-            Set<Simplex> neighborSimplexes = new HashSet();
-            for (Simplex side : u.getSides()) {
-                for (Simplex v : side2simplexes.get(side)) {
-                    if (!u.equals(v)) {
-                        neighborSimplexes.add(v);
-                    }
-                }
-            }
-            return neighborSimplexes;
-        }
-
-        @Override
-        public Collection<Integer> getBorderVertices() {
-            return borderVertices;
         }
 
         @Override
