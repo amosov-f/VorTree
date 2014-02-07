@@ -31,10 +31,10 @@ public class Ball implements Framable {
 
         FieldLUDecomposition<BigFraction> decomposition = new FieldLUDecomposition(new BlockFieldMatrix<BigFraction>(f));
         center = decomposition.getSolver().solve(new ArrayFieldVector(b)).toArray();
-        radius2 = distance2(points.get(0));
+        radius2 = distance2to(points.get(0));
     }
 
-    private BigFraction distance2(Point p2) {
+    private BigFraction distance2to(Point p2) {
         BigFraction distance2 = BigFraction.ZERO;
         for (int i = 0; i < center.length; ++i) {
             BigFraction cur = center[i].subtract(p2.get(i));
@@ -45,7 +45,7 @@ public class Ball implements Framable {
     }
 
     public boolean contains(Point p) {
-        return radius2.compareTo(distance2(p)) == 1;
+        return radius2.compareTo(distance2to(p)) == 1;
     }
 
     public Ball(Point... points) {
@@ -62,6 +62,10 @@ public class Ball implements Framable {
 
     public long getRadius() {
         return Math.round(Math.sqrt(radius2.doubleValue()));
+    }
+
+    public long getRadius2() {
+        return radius2.longValue();
     }
 
     @Override

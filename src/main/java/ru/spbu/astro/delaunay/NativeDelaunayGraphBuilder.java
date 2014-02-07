@@ -19,7 +19,7 @@ public class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
     public class NativeDelaunayGraph extends AbstractDelaunayGraph {
 
         private BitSet mask;
-        private List<Integer> pointIds;
+        private ArrayList<Integer> pointIds;
 
         NativeDelaunayGraph(Collection<Integer> pointIds) {
             super(pointIds);
@@ -29,9 +29,7 @@ public class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
             }
 
             if (pointIds.size() == dim + 1) {
-                Simplex s = new Simplex(pointIds);
-                addGraph(s.toGraph());
-                simplexes.add(s);
+                addSimplex(new Simplex(pointIds));
                 return;
             }
 
@@ -50,15 +48,14 @@ public class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
 
         private void build(int pos, int rem) {
             if (rem == 0) {
-                List<Integer> vertices = new ArrayList();
+                ArrayList<Integer> vertices = new ArrayList();
                 for (int i = 0; i < mask.size(); ++i) {
                     if (mask.get(i)) {
                         vertices.add(pointIds.get(i));
                     }
                 }
                 Simplex s = new Simplex(vertices);
-                if (!isCreep(s, pointIds)) {
-                    addGraph(s.toGraph());
+                if (!isCreep(s)) {
                     addSimplex(s);
                 }
                 return;

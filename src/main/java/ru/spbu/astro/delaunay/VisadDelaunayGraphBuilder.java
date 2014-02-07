@@ -45,16 +45,6 @@ public class VisadDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
                 return;
             }
 
-            for (int u = 0; u < delaunay.Vertices.length; ++u) {
-                for (int i = 0; i < delaunay.Vertices[u].length; ++i) {
-                    int t = delaunay.Vertices[u][i];
-                    for (int j = 0; j < delaunay.Tri[t].length; ++j) {
-                        int v = delaunay.Tri[t][j];
-                        addEdge(index2pointId.get(u), index2pointId.get(v));
-                    }
-                }
-            }
-
             for (int t = 0; t < delaunay.Tri.length; ++t) {
                 addSimplex(new Simplex(toPointIds(delaunay.Tri[t])));
             }

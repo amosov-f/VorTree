@@ -55,12 +55,6 @@ public abstract class DelaunayGraphPainter extends ClickableView {
         paintTriangle(triangle, rect, g, Color.getHSBColor(240f / 360, 1f, 1 - Math.min(triangle.getLevel() * 30f / 255, 1f)));
     }
 
-    public void paintCreepTriangles(AbstractDelaunayGraphBuilder.AbstractDelaunayGraph graph, Graphics g) {
-        for (Simplex t : graph.getCreepPointSimplexes()) {
-            paintTriangle(t, rect, g, new Color(150 + new Random().nextInt(106), 0, 0));
-        }
-    }
-
     private Point toWindow(ru.spbu.astro.model.Point p, Rectangle rect) {
         int w = getWidth() - 2 * ALIGN;
         int h = getHeight() - 2 * ALIGN;

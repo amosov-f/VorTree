@@ -81,22 +81,30 @@ public abstract class AbstractDelaunayGraphBuilder {
         return split(id2point.keySet(), m, 0);
     }
 
+    public final Point getPoint(int pointId) {
+        return id2point.get(pointId);
+    }
+
+    public final ArrayList<Point> getPoints(Iterable<Integer> pointIds) {
+        ArrayList<Point> points = new ArrayList();
+        for (Integer pointId : pointIds) {
+            points.add(id2point.get(pointId));
+        }
+        return points;
+    }
+
 
     public abstract class AbstractDelaunayGraph extends Triangulation implements Framable {
-        Collection<Integer> pointIds;
 
         public AbstractDelaunayGraph(final Collection<Integer> pointIds) {
-            this.pointIds = pointIds;
+            addVertices(pointIds);
             if (pointIds.size() <= dim) {
-                for (int u : pointIds) {
-                    for (int v : pointIds) {
-                        addEdge(u, v);
-                    }
-                }
+                addGraph(new Simplex(pointIds).toGraph());
             }
         }
 
         public boolean contains(int u, Point p) {
+            //System.out.println(u);
             for (int v : neighbors.get(u)) {
                 if (getPoint(v).distance2to(p) < getPoint(u).distance2to(p)) {
                     return false;
@@ -105,33 +113,27 @@ public abstract class AbstractDelaunayGraphBuilder {
             return true;
         }
 
-        public Collection<Integer> getBindPointIds() {
-            return getBindPointIds(id2point.keySet());
-        }
-
-        public HashSet<Integer> getBindPointIds(Iterable<Integer> pointIds) {
-            HashSet<Integer> bindPointIds = new HashSet(getBorderVertices());
-            for (Simplex simplex : getCreepSimplexes(pointIds)) {
-                bindPointIds.addAll(simplex.getVertices());
+        public HashSet<Integer> getBindPointIds(AbstractDelaunayGraph g) {
+            HashSet<Integer> bindPointIds = new HashSet(g.getBorderVertices());
+            for (Simplex s : getCreepSimplexes(g)) {
+                bindPointIds.addAll(s.getVertices());
             }
             return bindPointIds;
         }
 
-        public Graph removeCreepSimplexes(Iterable<Integer> pointIds) {
-            Graph g = new Graph();
-            for (Simplex simplex : getCreepSimplexes(pointIds)) {
-                removeGraph(simplex.toGraph());
-                simplexes.remove(simplex);
-                g.addGraph(simplex.toGraph());
+        public Graph removeCreepSimplexes(AbstractDelaunayGraph g) {
+            Graph removedGraph = new Graph();
+            for (Simplex s : getCreepSimplexes(g)) {
+                removedGraph.addGraph(g.removeSimplex(s));
             }
-            return g;
+            return removedGraph;
         }
 
-        public ArrayList<Simplex> getCreepSimplexes(Iterable<Integer> pointIds) {
+        public ArrayList<Simplex> getCreepSimplexes(AbstractDelaunayGraph g) {
             ArrayList<Simplex> creepSimplexes = new ArrayList();
-            for (Simplex t : getSimplexes()) {
-                if (isCreep(t, pointIds)) {
-                    creepSimplexes.add(t);
+            for (Simplex s : g.getSimplexes()) {
+                if (isCreep(s)) {
+                    creepSimplexes.add(s);
                 }
             }
             return creepSimplexes;
@@ -139,20 +141,16 @@ public abstract class AbstractDelaunayGraphBuilder {
 
         public Collection<ru.spbu.astro.model.Simplex> getPointSimplexes() {
             Collection<ru.spbu.astro.model.Simplex> simplexes = new ArrayList();
-            for (Simplex t : getSimplexes()) {
-                simplexes.add(new ru.spbu.astro.model.Simplex(getPoints(t)));
+            for (Simplex s : getSimplexes()) {
+                simplexes.add(new ru.spbu.astro.model.Simplex(getPoints(s)));
             }
             return simplexes;
         }
 
-        public Collection<Simplex> getCreepSimplexes() {
-            return getCreepSimplexes(pointIds);
-        }
-
-        public Collection<ru.spbu.astro.model.Simplex> getCreepPointSimplexes() {
+        public Collection<ru.spbu.astro.model.Simplex> getCreepPointSimplexes(AbstractDelaunayGraph g) {
             Collection<ru.spbu.astro.model.Simplex> creepSimplexes = new ArrayList();
-            for (Simplex t : getCreepSimplexes(id2point.keySet())) {
-                creepSimplexes.add(new ru.spbu.astro.model.Simplex(getPoints(t)));
+            for (Simplex s : getCreepSimplexes(g)) {
+                creepSimplexes.add(new ru.spbu.astro.model.Simplex(g.getPoints(s)));
             }
             return creepSimplexes;
         }
@@ -160,35 +158,24 @@ public abstract class AbstractDelaunayGraphBuilder {
         public List<Line> getPointEdges() {
             List<Line> edges = new ArrayList();
             for (Edge edge : getEdges()) {
-                edges.add(new Line(id2point.get(edge.getFirst()), id2point.get(edge.getSecond())));
+                edges.add(new Line(getPoint(edge.getFirst()), getPoint(edge.getSecond())));
             }
             return edges;
         }
 
-        public Point getPoint(int pointId) {
-            return id2point.get(pointId);
+        public final ArrayList<Point> getPoints() {
+            return AbstractDelaunayGraphBuilder.this.getPoints(getVertices());
         }
 
-        public List<Point> getPoints() {
-            return getPoints(pointIds);
+        public final ArrayList<Point> getPoints(Simplex s) {
+            return AbstractDelaunayGraphBuilder.this.getPoints(s.getVertices());
         }
 
-        public List<Point> getPoints(Collection<Integer> pointIds) {
-            List<Point> points = new ArrayList();
-            for (Integer pointId : pointIds) {
-                points.add(id2point.get(pointId));
-            }
-            return points;
-        }
-
-        public List<Point> getPoints(Simplex t) {
-            return getPoints(t.getVertices());
-        }
-
-        public boolean isCreep(Simplex t, Iterable<Integer> pointIds) {
-            Ball b = new Ball(getPoints(t));
-            for (int pointId : pointIds) {
-                if (b.contains(id2point.get(pointId))) {
+        public boolean isCreep(Simplex s) {
+            Ball b = new Ball(getPoints(s));
+            //System.out.println(getPoints().size());
+            for (Point p : getPoints()) {
+                if (b.contains(p)) {
                     return true;
                 }
             }

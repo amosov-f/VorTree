@@ -3,7 +3,9 @@ package ru.spbu.astro;
 import org.math.plot.FrameView;
 import org.math.plot.Plot2DPanel;
 import ru.spbu.astro.delaunay.AbstractDelaunayGraphBuilder;
+import ru.spbu.astro.delaunay.BindDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.NativeDelaunayGraphBuilder;
+import ru.spbu.astro.delaunay.VisadDelaunayGraphBuilder;
 import ru.spbu.astro.graphics.ClickableView;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.utility.Plotter;
@@ -28,11 +30,23 @@ public class VorTreeVisualizerEngine {
         public void build() {
             Collection<Point> points = PointGenerator.nextUniforms(1000, 1000 * getWidth(), 1000 * getHeight());
 
-            AbstractDelaunayGraphBuilder builder = new VorTreeBuilder(points, 2);
+            AbstractDelaunayGraphBuilder builder1 = new BindDelaunayGraphBuilder(points, 2);
+            AbstractDelaunayGraphBuilder builder2 = new VorTreeBuilder(points, 2);
 
-            AbstractDelaunayGraphBuilder.AbstractDelaunayGraph graph = builder.build();
+            long t1 = System.currentTimeMillis();
 
-            add(graph);
+            AbstractDelaunayGraphBuilder.AbstractDelaunayGraph graph1 = builder1.build();
+
+            long t2 = System.currentTimeMillis();
+
+            AbstractDelaunayGraphBuilder.AbstractDelaunayGraph graph2 = builder2.build();
+
+            long t3 = System.currentTimeMillis();
+
+            System.out.println("bind time = " + (t2 - t1) / 1000);
+            System.out.println("vor tree time = " + (t3 - t2) / 1000);
+
+            add(graph2);
         }
     }
 
@@ -43,9 +57,11 @@ public class VorTreeVisualizerEngine {
         frame.setSize(component.getSize());
         frame.setVisible(true);
 
-        Plot2DPanel plot = new Plot2DPanel();
-        plot.addPlot(Plotter.linePlot("count", Color.BLUE, NativeDelaunayGraphBuilder.count));
-        new FrameView(plot);
+        if (!NativeDelaunayGraphBuilder.count.isEmpty()) {
+            Plot2DPanel plot = new Plot2DPanel();
+            plot.addPlot(Plotter.linePlot("count", Color.BLUE, NativeDelaunayGraphBuilder.count));
+            new FrameView(plot);
+        }
 
         /*
         for (int m = 30; m < 50; ++m) {

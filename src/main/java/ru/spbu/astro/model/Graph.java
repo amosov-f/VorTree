@@ -11,6 +11,12 @@ public class Graph implements Iterable<Graph.Edge>, Cloneable {
         }
     }
 
+    public void addVertices(Iterable<Integer> vertices) {
+        for (int u : vertices) {
+            addVertex(u);
+        }
+    }
+
     public void addEdge(int u, int v) {
         addVertex(u);
         addVertex(v);

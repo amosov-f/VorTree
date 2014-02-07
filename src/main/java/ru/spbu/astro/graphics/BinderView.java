@@ -64,9 +64,9 @@ public class BinderView extends DelaunayGraphPainter {
 
     private List<Simplex> getCreepTriangles() {
         List<Simplex> creepTriangles = new ArrayList();
-        for (AbstractDelaunayGraphBuilder.AbstractDelaunayGraph delaunayGraph : delaunayGraphs) {
-            creepTriangles.addAll(delaunayGraph.getCreepPointSimplexes());
-        }
+        //for (AbstractDelaunayGraphBuilder.AbstractDelaunayGraph delaunayGraph : delaunayGraphs) {
+        //    creepTriangles.addAll(delaunayGraph.getCreepPointSimplexes());
+        //}
         return creepTriangles;
     }
 }

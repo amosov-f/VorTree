@@ -43,7 +43,14 @@ public class Triangulation extends Graph {
     }
 
     public void addSimplex(Simplex s) {
+        addGraph(s.toGraph());
         simplexes.add(s);
+    }
+
+    public Graph removeSimplex(Simplex s) {
+        removeGraph(s.toGraph());
+        simplexes.remove(s);
+        return s.toGraph();
     }
 
     public final void addSimplexes(Iterable<Simplex> simplexes) {
@@ -105,6 +112,10 @@ public class Triangulation extends Graph {
             }
 
             return sideSimplexes;
+        }
+
+        public boolean contains(int vertex) {
+            return vertices.contains(vertex);
         }
 
         @Override

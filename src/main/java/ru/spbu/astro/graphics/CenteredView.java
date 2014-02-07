@@ -228,23 +228,25 @@ public class CenteredView extends Component {
             }
 
             if (trianglePainter != null) {
-                for (Simplex t : graph.getPointSimplexes()) {
-                    trianglePainter.paint(t, g);
+                for (Simplex s : graph.getPointSimplexes()) {
+                    trianglePainter.paint(s, g);
                 }
             }
+            /*
             if (mode != DelaunayGraphViewMode.NO_TRIANGLES) {
                 trianglePainter = new TrianglePainter(TriangleViewMode.CREEP);
-                for (Simplex t : graph.getCreepPointSimplexes()) {
-                    trianglePainter.paint(t, g);
+                for (Simplex s : getCreepPointSimplexes(graph)) {
+                    trianglePainter.paint(s, g);
                 }
             }
+            */
 
             ((Graphics2D) g).setComposite(composite);
 
             ((Graphics2D) g).setStroke(new BasicStroke(width));
 
             LinePainter linePainter = new LinePainter(edgeColor, width);
-            PointPainter pointPainter = new PointPainter(Color.BLACK, 2);
+            PointPainter pointPainter = new PointPainter(Color.BLACK, 0);
 
             for (Line edge : graph.getPointEdges()) {
                 linePainter.paint(edge, g);

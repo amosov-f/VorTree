@@ -38,7 +38,7 @@ public class Lemma2VisualizerEngine {
             AbstractDelaunayGraphBuilder.AbstractDelaunayGraph dp = builder.build(pointIds);
             AbstractDelaunayGraphBuilder.AbstractDelaunayGraph d = builder.build();
 
-            Collection<Integer> bindPointIds = dp.getBindPointIds();
+            Collection<Integer> bindPointIds = d.getBindPointIds(dp);
             bindPointIds.add(points.size() - 1);
 
             AbstractDelaunayGraphBuilder.AbstractDelaunayGraph d1 = builder.build(bindPointIds);

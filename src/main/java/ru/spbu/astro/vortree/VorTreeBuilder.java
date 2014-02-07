@@ -1,6 +1,6 @@
 package ru.spbu.astro.vortree;
 
-import javafx.util.Pair;
+import com.google.common.collect.Iterables;
 import ru.spbu.astro.delaunay.AbstractDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.NativeDelaunayGraphBuilder;
 import ru.spbu.astro.model.*;
@@ -8,7 +8,6 @@ import ru.spbu.astro.model.*;
 import java.util.*;
 
 public class VorTreeBuilder extends AbstractDelaunayGraphBuilder {
-    private Map<Integer, Point> id2point = new HashMap();
     private int m;
 
     NativeDelaunayGraphBuilder nativeDelaunayGraphBuilder;
@@ -25,23 +24,14 @@ public class VorTreeBuilder extends AbstractDelaunayGraphBuilder {
         return new VorTree(pointIds, m);
     }
 
-    public List<Point> getPoints(Collection<Integer> pointIds) {
-        List<Point> points = new ArrayList();
-        for (int pointId : pointIds) {
-            points.add(id2point.get(pointId));
-        }
-        return points;
-    }
-
-    public Point getPoint(int pointId) {
-        return id2point.get(pointId);
-    }
-
     public class VorTree extends AbstractDelaunayGraph implements Index {
-        RTree rTree;
+        private RTree rTree;
 
-        Collection<Integer> borderVertices = new ArrayList();
-        HashMap<Simplex, Collection<Simplex> > side2simplexes = new HashMap();
+        private Collection<Integer> borderVertices = new ArrayList();
+        private HashMap<Simplex, Collection<Simplex> > side2simplexes = new HashMap();
+
+        private ArrayList<VorTree> sons = new ArrayList();
+        private VorTree pivotVorTree;
 
         public VorTree(Collection<Integer> pointIds, int level) {
             super(pointIds);
@@ -59,7 +49,7 @@ public class VorTreeBuilder extends AbstractDelaunayGraphBuilder {
                 Collections.shuffle(pointIdList);
                 List<Integer> pivotIds = pointIdList.subList(0, Math.min(m, pointIdList.size()));
 
-                VorTree pivotVorTree = (VorTree) build(pivotIds);
+                pivotVorTree = (VorTree) build(pivotIds);
                 for (int pointId : pointIds) {
                     pointId2pivotId.put(pointId, pivotVorTree.getNearestNeighbor(getPoint(pointId)));
                 }
@@ -80,18 +70,17 @@ public class VorTreeBuilder extends AbstractDelaunayGraphBuilder {
 
             Collection<ArrayList<Integer>> cells = pivotId2pointIds.values();
 
-            ArrayList<VorTree> vorTrees = new ArrayList();
             for (List<Integer> cell : cells) {
                 VorTree vorTree = (VorTree) build(cell);
-                vorTrees.add(vorTree);
+                sons.add(vorTree);
                 rTree.sons.add(vorTree.rTree);
             }
 
             Collection<Integer> bindPointIds = new HashSet();
             Graph removedGraph = new Graph();
-            for (VorTree vorTree : vorTrees) {
+            for (VorTree vorTree : sons) {
                 bindPointIds.addAll(vorTree.getBorderVertices());
-                removedGraph.addGraph(vorTree.removeCreepSimplexes(pointIds));
+                removedGraph.addGraph(removeCreepSimplexes(vorTree));
                 addTriangulation(vorTree);
             }
             bindPointIds.addAll(removedGraph.getVertices());
@@ -131,73 +120,37 @@ public class VorTreeBuilder extends AbstractDelaunayGraphBuilder {
         }
 
         @Override
-        public int getNearestNeighbor(final Point p) {
-            PriorityQueue<RTree> heap = new PriorityQueue<RTree>(rTree.sons.size() + 1, new Comparator<RTree>() {
-                @Override
-                public int compare(RTree v1, RTree v2) {
-                    return Long.compare(v1.cover.distance2to(p), v2.cover.distance2to(p));
-                }
-            });
-            heap.add(rTree);
-            long bestDist = Long.MAX_VALUE;
-            int bestNN = -1;
-            while (!heap.isEmpty()) {
-                RTree u = heap.poll();
-                if (u.sons.isEmpty()) {
-                    for (int pointId : u.pointIds) {
-                        if (getPoint(pointId).distance2to(p) < bestDist) {
-                            bestNN = pointId;
-                            bestDist = getPoint(pointId).distance2to(p);
-                        }
-                    }
-                    if (contains(bestNN, p)) {
-                        return bestNN;
-                    }
-                } else {
-                    for (RTree v : u.sons) {
-                        heap.add(v);
-                    }
-                }
-            }
-            return -1;
-        }
+        public Graph removeCreepSimplexes(AbstractDelaunayGraph delaunayGraph) {
+            VorTree t = (VorTree) delaunayGraph;
 
-        @Override
-        public Graph removeCreepSimplexes(Iterable<Integer> pointIds) {
             HashSet<Simplex> visitedSimplexes = new HashSet();
-            Graph deletedGraph = new Graph();
+            Graph removedGraph = new Graph();
 
-            for (Simplex t : getBorderSimplexes()) {
-                deletedGraph.addGraph(dfs(t, visitedSimplexes, pointIds));
+            for (Simplex s : t.getBorderSimplexes()) {
+                removedGraph.addGraph(dfs(t, s, visitedSimplexes));
             }
 
-            return deletedGraph;
+            return removedGraph;
         }
 
-        private Graph dfs(Simplex ut, HashSet<Simplex> visitedSimplexes, Iterable<Integer> pointIds) {
-            if (visitedSimplexes.contains(ut)) {
+        private Graph dfs(VorTree t, Simplex u, HashSet<Simplex> visitedSimplexes) {
+            if (visitedSimplexes.contains(u)) {
                 return new Graph();
             }
-            visitedSimplexes.add(ut);
+            visitedSimplexes.add(u);
 
-            if (!isCreep(ut, pointIds)) {
+            if (!isCreep(u)) {
                 return new Graph();
             }
 
-            Graph g = new Graph();
-            for (Simplex vt : getNeighborSimplexes(ut)) {
-                g.addGraph(dfs(vt, visitedSimplexes, pointIds));
+            Graph removedGraph = new Graph();
+            for (Simplex v : t.getNeighborSimplexes(u)) {
+                removedGraph.addGraph(dfs(t, v, visitedSimplexes));
             }
 
-            for (Simplex side : ut.getSides()) {
-                side2simplexes.get(side).remove(ut);
-            }
+            removedGraph.addGraph(t.removeSimplex(u));
 
-            removeGraph(ut.toGraph());
-            simplexes.remove(ut);
-            g.addGraph(ut.toGraph());
-
-            return g;
+            return removedGraph;
         }
 
         public HashSet<Simplex> getBorderSimplexes() {
@@ -211,14 +164,22 @@ public class VorTreeBuilder extends AbstractDelaunayGraphBuilder {
         }
 
         @Override
-        public void addSimplex(Simplex t) {
-            super.addSimplex(t);
-            for (Simplex side : t.getSides()) {
+        public void addSimplex(Simplex s) {
+            super.addSimplex(s);
+            for (Simplex side : s.getSides()) {
                 if (!side2simplexes.containsKey(side)) {
                     side2simplexes.put(side, new HashSet());
                 }
-                side2simplexes.get(side).add(t);
+                side2simplexes.get(side).add(s);
             }
+        }
+
+        @Override
+        public Graph removeSimplex(Simplex s) {
+            for (Simplex side : s.getSides()) {
+                side2simplexes.get(side).remove(s);
+            }
+            return super.removeSimplex(s);
         }
 
         public Collection<Simplex> getNeighborSimplexes(Simplex u) {
@@ -238,14 +199,61 @@ public class VorTreeBuilder extends AbstractDelaunayGraphBuilder {
             return borderVertices;
         }
 
+        @Override
+        public boolean isCreep(Simplex s) {
+            Ball b = new Ball(getPoints(s));
+            Point center = b.getCenter();
+            //return b.contains(getPoint(getNearestNeighbor(center)));
+
+            for (VorTree vorTree : sons) {
+                int curNN = vorTree.getNearestNeighbor(center);
+                if (b.contains(getPoint(curNN))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public int getNearestNeighbor(final Point p) {
+            PriorityQueue<RTree> heap = new PriorityQueue<RTree>(rTree.sons.size() + 1, new Comparator<RTree>() {
+                @Override
+                public int compare(RTree v1, RTree v2) {
+                    return Long.compare(v1.cover.distance2to(p), v2.cover.distance2to(p));
+                }
+            });
+            heap.add(rTree);
+            long bestDist2 = Long.MAX_VALUE;
+            int bestNN = -1;
+            while (!heap.isEmpty()) {
+                RTree u = heap.poll();
+                if (u.sons.isEmpty()) {
+                    for (int pointId : u.pointIds) {
+                        if (getPoint(pointId).distance2to(p) < bestDist2) {
+                            bestNN = pointId;
+                            bestDist2 = getPoint(pointId).distance2to(p);
+                        }
+                    }
+                    if (contains(bestNN, p)) {
+                        return bestNN;
+                    }
+                } else {
+                    for (RTree v : u.sons) {
+                        heap.add(v);
+                    }
+                }
+            }
+            return -1;
+        }
+
         private class RTree {
             private Rectangle cover;
             private ArrayList<RTree> sons = new ArrayList();
-            private Collection<Integer> pointIds;
+            private ArrayList<Integer> pointIds;
 
             private RTree(Collection<Integer> pointIds) {
-                this.cover = new Rectangle(getPoints(pointIds));
-                this.pointIds = pointIds;
+                this.cover = new Rectangle(VorTreeBuilder.this.getPoints(pointIds));
+                this.pointIds = new ArrayList(pointIds);
             }
         }
     }
