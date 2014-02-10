@@ -10,6 +10,11 @@
     <artifactId>VorTree</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <properties>
+        <proto.folder>${basedir}/src/main/proto</proto.folder>
+        <google.protobuf.version>2.4.1</google.protobuf.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -37,12 +42,6 @@
             <version>3.2</version>
         </dependency>
         <dependency>
-            <groupId>org.math.plot</groupId>
-            <artifactId>jmathplot</artifactId>
-            <version>1.0</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
             <groupId>visad</groupId>
             <artifactId>delaunay</artifactId>
             <version>1.0.0</version>
@@ -52,9 +51,52 @@
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
-            <version>2.5.0</version>
+            <version>${google.protobuf.version}</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <directory>dist/jars</directory>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>ru.yandex.common</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <protobufVersion>${google.protobuf.version}</protobufVersion>
+                            <protoFolder>${proto.folder}</protoFolder>
+                            <outputFolder>${basedir}/src/main/java</outputFolder>
+                            <protoFiles>
+                                <protoFile>${proto.folder}/Schema.proto</protoFile>
+                            </protoFiles>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
 

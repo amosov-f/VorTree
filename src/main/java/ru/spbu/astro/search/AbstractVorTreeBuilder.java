@@ -1,8 +1,8 @@
 package ru.spbu.astro.search;
 
-import org.apache.commons.lang.SerializationUtils;
-import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.io.WritableComparable;
+import ru.spbu.astro.Schema;
+import ru.spbu.astro.Schema.msg;
+import ru.spbu.astro.Schema.msg.Builder;
 import ru.spbu.astro.delaunay.AbstractDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.NativeDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.WalkableDelaunayGraphBuilder;
@@ -10,8 +10,10 @@ import ru.spbu.astro.model.Ball;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.model.Rectangle;
 
-import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 
 public abstract class AbstractVorTreeBuilder extends WalkableDelaunayGraphBuilder {
     protected int m = 2;
@@ -29,9 +31,23 @@ public abstract class AbstractVorTreeBuilder extends WalkableDelaunayGraphBuilde
         binder = new NativeDelaunayGraphBuilder(pointIds);
     }
 
-    public class AbstractVorTree extends WalkableDelaunayGraph implements Index {
+    public static class AbstractVorTree extends WalkableDelaunayGraph implements Index {
         public RTree rTree;
         protected ArrayList<AbstractVorTree> sons = new ArrayList();
+
+        void toMessage(final Schema.msg.Builder builder){
+            builder.setRTree(rTree.toMessage);
+            for (final AbstractVorTree son:sons){
+                builder.addSons(son.toMessage());
+            }
+            super.toMessage(builder)
+        }
+
+        msg toMessage(){
+            final Builder builder = msg.newBuilder();
+            toMessage(builder);
+            return builder.build();
+        }
 
         public AbstractVorTree() {
             this(new ArrayList());

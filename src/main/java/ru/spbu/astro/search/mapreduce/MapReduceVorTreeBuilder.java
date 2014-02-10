@@ -5,21 +5,29 @@ import org.apache.commons.lang.SerializationUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import ru.spbu.astro.Schema.msg;
 import ru.spbu.astro.model.Graph;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.search.AbstractVorTreeBuilder;
-import ru.spbu.astro.search.VorTreeBuilder;
+import ru.spbu.astro.search.VorTreeBuilder.VorTree;
 
-import java.io.*;
-import java.util.*;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 public class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
 
@@ -48,32 +56,32 @@ public class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
                 return;
             }
 
-            Map<Integer, Integer> pointId2pivotId = new HashMap();
+            final Map<Integer, Integer> pointId2pivotId = new HashMap<>();
             if (pointIds.size() > m) {
-                ArrayList<Integer> pointIdList = new ArrayList(pointIds);
+                final ArrayList<Integer> pointIdList = new ArrayList<Integer>(pointIds);
                 Collections.shuffle(pointIdList);
-                List<Integer> pivotIds = pointIdList.subList(0, Math.min(m, pointIdList.size()));
+                final List<Integer> pivotIds = pointIdList.subList(0, Math.min(m, pointIdList.size()));
 
-                MapReduceVorTree pivotMapReduceVorTree = (MapReduceVorTree) build(pivotIds);
-                for (int pointId : pointIds) {
+                final MapReduceVorTree pivotMapReduceVorTree = (MapReduceVorTree) build(pivotIds);
+                for (final int pointId : pointIds) {
                     pointId2pivotId.put(pointId, pivotMapReduceVorTree.getNearestNeighbor(id2point.get(pointId)));
                 }
             } else {
-                for (int pointId : pointIds) {
+                for (final int pointId : pointIds) {
                     pointId2pivotId.put(pointId, pointId);
                 }
             }
 
-            HashMap<Integer, ArrayList<Integer>> pivotId2pointIds = new HashMap();
-            for (int pointId : pointId2pivotId.keySet()) {
-                int pivotId = pointId2pivotId.get(pointId);
+            final HashMap<Integer, List<Integer>> pivotId2pointIds = new HashMap<Integer,List<Integer>>();
+            for (final int pointId : pointId2pivotId.keySet()) {
+                final int pivotId = pointId2pivotId.get(pointId);
                 if (!pivotId2pointIds.containsKey(pivotId)) {
-                    pivotId2pointIds.put(pivotId, new ArrayList());
+                    pivotId2pointIds.put(pivotId, new ArrayList<Integer>());
                 }
                 pivotId2pointIds.get(pivotId).add(pointId);
             }
 
-            Collection<ArrayList<Integer>> cells = pivotId2pointIds.values();
+            final Collection<List<Integer>> cells = pivotId2pointIds.values();
 
             try {
                 processMapReduce(cells);
@@ -82,16 +90,16 @@ public class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
                 System.exit(0);
             }
 
-            Collection<Integer> bindPointIds = new HashSet();
-            Graph removedGraph = new Graph();
-            for (AbstractVorTree t : sons) {
+            final Collection<Integer> bindPointIds = new HashSet<Integer>();
+            final Graph removedGraph = new Graph();
+            for (final AbstractVorTree t : sons) {
                 bindPointIds.addAll(t.getBorderVertices());
                 removedGraph.addGraph(removeCreepSimplexes(t));
                 addTriangulation(t);
             }
             bindPointIds.addAll(removedGraph.getVertices());
 
-            AbstractDelaunayGraph bindDelanayGraph;
+            final AbstractDelaunayGraph bindDelanayGraph;
             if (bindPointIds.size() != pointIds.size()) {
                 bindDelanayGraph = build(bindPointIds);
             } else {
@@ -124,10 +132,10 @@ public class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
             }
         }
 
-        public void processMapReduce(Collection<ArrayList<Integer>> cells) throws Exception {
+        public void processMapReduce(Collection<List<Integer>> cells) throws Exception {
 
             PrintWriter fout = new PrintWriter(new FileOutputStream("input.txt"));
-            for (ArrayList<Integer> cell : cells) {
+            for (List<Integer> cell : cells) {
                 for (int pointId : cell) {
                     fout.print(pointId + " ");
                 }
@@ -155,7 +163,9 @@ public class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
             job.waitForCompletion(true);
 
             DataInputStream fin = new DataInputStream(new FileInputStream("output/part-m-00000"));
+            final FileInputStream fis = new FileInputStream("");
             for (int i = 0; i < m; ++i) {
+                final VorTree v = VorTree.fromMessage(msg.parseDelimitedFrom(fis));
                 AbstractDelaunayGraph t = (AbstractDelaunayGraph) SerializationUtils.deserialize(fin);
 
                 System.out.println("deserialized: " + t);

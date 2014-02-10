@@ -15,8 +15,8 @@ public abstract class WalkableDelaunayGraphBuilder extends AbstractDelaunayGraph
     }
 
     public class WalkableDelaunayGraph extends AbstractDelaunayGraph {
-        protected ArrayList<Integer> borderVertices = new ArrayList();
-        protected HashMap<Simplex, Collection<Simplex> > side2simplexes = new HashMap();
+        protected List<Integer> borderVertices = new ArrayList<>();
+        protected Map<Simplex, Collection<Simplex> > side2simplexes = new HashMap<>();
 
         protected WalkableDelaunayGraph() {
         }
@@ -27,7 +27,7 @@ public abstract class WalkableDelaunayGraphBuilder extends AbstractDelaunayGraph
 
         protected WalkableDelaunayGraph(WalkableDelaunayGraph g) {
             super(g);
-            borderVertices = new ArrayList(g.borderVertices);
+            borderVertices = new ArrayList<>(g.borderVertices);
         }
 
         @Override

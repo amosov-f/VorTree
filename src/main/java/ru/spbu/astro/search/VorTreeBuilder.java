@@ -1,12 +1,17 @@
 package ru.spbu.astro.search;
 
-import org.apache.commons.lang.SerializationUtils;
-import org.apache.hadoop.io.Writable;
-import ru.spbu.astro.delaunay.NativeDelaunayGraphBuilder;
-import ru.spbu.astro.model.*;
+import ru.spbu.astro.Schema.msg;
+import ru.spbu.astro.model.Graph;
+import ru.spbu.astro.model.Point;
 
-import java.io.*;
-import java.util.*;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 public class VorTreeBuilder extends AbstractVorTreeBuilder {
 
@@ -23,10 +28,24 @@ public class VorTreeBuilder extends AbstractVorTreeBuilder {
         return new VorTree(pointIds);
     }
 
-    public class VorTree extends AbstractVorTree implements Serializable {
+    public static class VorTree extends AbstractVorTree implements Serializable {
 
         public VorTree() {
             this(new ArrayList());
+        }
+
+        public static VorTree fromMessage(final msg message){
+
+        }
+
+        public msg toMessage(){
+            final msg.Builder builder = msg.newBuilder();
+            toMessage(builder);
+            return builder.build();
+        }
+
+        public void toMessage(msg.Builder builder){
+            super.toMessage(builder);
         }
 
         public VorTree(Collection<Integer> pointIds) {
