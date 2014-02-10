@@ -1,0 +1,9 @@
+package ru.spbu.astro;
+
+message msg{
+  message RTreeMessage{
+
+  }
+  repeated msg sons = 1;
+  optional RTreeMessage rTree = 2;
+}
