@@ -1,17 +1,24 @@
 package ru.spbu.astro.search.mapreduce;
 
 import org.apache.commons.lang.SerializationUtils;
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.io.serializer.JavaSerialization;
 import org.apache.hadoop.mapreduce.Mapper;
-import ru.spbu.astro.Schema.msg;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import ru.spbu.astro.db.PointDepot;
+import ru.spbu.astro.delaunay.AbstractDelaunayGraphBuilder;
+import ru.spbu.astro.delaunay.VisadDelaunayGraphBuilder;
+import ru.spbu.astro.model.Graph;
+import ru.spbu.astro.model.Point;
+import ru.spbu.astro.search.AbstractVorTreeBuilder;
 import ru.spbu.astro.search.VorTreeBuilder;
+import ru.spbu.astro.Schema.msg;
 
-import java.io.IOException;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Random;
 
 public class DelaunayMapper extends Mapper<LongWritable, Text, NullWritable, BytesWritable> {
     //private final PointDepot id2point;
@@ -36,15 +43,18 @@ public class DelaunayMapper extends Mapper<LongWritable, Text, NullWritable, Byt
         VorTreeBuilder builder = new VorTreeBuilder(pointIds, 2);
         VorTreeBuilder.VorTree t = (VorTreeBuilder.VorTree) builder.build();
 
-        System.out.println(t);
-        byte[] bytes = SerializationUtils.serialize(t);
-        final msg b = t.toMessage();
+        Graph g = new Graph();
+        g.addGraph(t);
+
+        System.out.println(g);
+        byte[] bytes = SerializationUtils.serialize(g);
         System.out.println("serialization completed");
 
-        System.out.println(Arrays.toString(bytes));
-        b.writeDelimitedTo();
-        context.write(NullWritable.get(), new BytesWritable(b.toByteArray()));
-
-        msg.parseFrom(bytes)
+        //System.out.println(Arrays.toString(bytes));
+//        System.out.println(Arrays.toString(bytes));
+//        b.writeDelimitedTo();
+//        context.write(NullWritable.get(), new BytesWritable(b.toByteArray()));
+//
+//        msg.parseFrom(bytes)
     }
 }

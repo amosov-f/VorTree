@@ -7,15 +7,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class Simplex implements Framable {
-    List<Point> vertices = new ArrayList();
+public final class Simplex implements Framable {
+    private final List<Point> vertices;
 
-    public Simplex(Point... points) {
+    public Simplex(final Point... points) {
         this(Arrays.asList(points));
     }
 
-    public Simplex(Collection<Point> points) {
-        vertices = new ArrayList(points);
+    public Simplex(final Collection<Point> points) {
+        vertices = new ArrayList<>(points);
     }
 
     public List<Point> getVertices() {
@@ -23,11 +23,15 @@ public class Simplex implements Framable {
     }
 
     public Point getCenter() {
-        Point center = new Point(vertices.get(0).dim());
-        for (Point v : vertices) {
+        Point center = new Point(dim());
+        for (final Point v : vertices) {
             center = center.add(v);
         }
         return center.multiply(1.0 / vertices.size());
+    }
+
+    public int dim() {
+        return vertices.get(0).dim();
     }
 
     @Override

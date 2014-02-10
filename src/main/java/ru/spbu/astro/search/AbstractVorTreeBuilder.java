@@ -10,30 +10,26 @@ import ru.spbu.astro.model.Ball;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.model.Rectangle;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.PriorityQueue;
+import java.util.*;
 
 public abstract class AbstractVorTreeBuilder extends WalkableDelaunayGraphBuilder {
-    protected int m = 2;
-    protected AbstractDelaunayGraphBuilder binder;
+    protected final AbstractDelaunayGraphBuilder binder;
+    protected final int division;
 
-    protected AbstractVorTreeBuilder(Iterable<Point> points, int m) {
+    protected AbstractVorTreeBuilder(final Iterable<Point> points, int division) {
         super(points);
-        this.m = m;
         binder = new NativeDelaunayGraphBuilder(points);
+        this.division = division;
     }
 
-    protected AbstractVorTreeBuilder(Collection<Integer> pointIds, int m) {
+    protected AbstractVorTreeBuilder(final Collection<Integer> pointIds, int division) {
         super(pointIds);
-        this.m = m;
         binder = new NativeDelaunayGraphBuilder(pointIds);
+        this.division = division;
     }
 
-    public static class AbstractVorTree extends WalkableDelaunayGraph implements Index {
-        public RTree rTree;
-        protected ArrayList<AbstractVorTree> sons = new ArrayList();
+    public class AbstractVorTree extends WalkableDelaunayGraph implements Index {
+        protected final RTree rTree;
 
         void toMessage(final Schema.msg.Builder builder){
             builder.setRTree(rTree.toMessage);
@@ -49,28 +45,22 @@ public abstract class AbstractVorTreeBuilder extends WalkableDelaunayGraphBuilde
             return builder.build();
         }
 
-        public AbstractVorTree() {
-            this(new ArrayList());
-        }
-
-        public AbstractVorTree(Collection<Integer> pointIds) {
+        protected AbstractVorTree(final Collection<Integer> pointIds) {
             super(pointIds);
+            rTree = new RTree();
         }
 
-        protected AbstractVorTree(AbstractVorTree t) {
+        protected AbstractVorTree(final AbstractVorTree t) {
             super(t);
-            rTree = (RTree) t.rTree.clone();
-            for (AbstractVorTree son : t.sons) {
-                sons.add(new AbstractVorTree(son));
-            }
+            rTree = new RTree(t.rTree);
         }
 
         @Override
-        public boolean isCreep(Simplex s) {
-            Ball b = new Ball(getPoints(s));
-            Point center = b.getCenter();
+        public boolean isCreep(final Simplex s) {
+            final Ball b = new Ball(getPoints(s));
+            final Point center = b.getCenter();
 
-            for (AbstractVorTree t : sons) {
+            for (RTree t : rTree.sons) {
                 int curNN = t.getNearestNeighbor(center);
                 if (b.contains(id2point.get(curNN))) {
                     return true;
@@ -81,61 +71,58 @@ public abstract class AbstractVorTreeBuilder extends WalkableDelaunayGraphBuilde
 
         @Override
         public int getNearestNeighbor(final Point p) {
-            PriorityQueue<RTree> heap = new PriorityQueue<RTree>(rTree.sons.size() + 1, new Comparator<RTree>() {
-                @Override
-                public int compare(RTree v1, RTree v2) {
-                    return Long.compare(v1.cover.distance2to(p), v2.cover.distance2to(p));
-                }
-            });
-            heap.add(rTree);
-            long bestDist2 = Long.MAX_VALUE;
-            int bestNN = -1;
-            while (!heap.isEmpty()) {
-                RTree u = heap.poll();
-                if (u.sons.isEmpty()) {
-                    for (int pointId : u.pointIds) {
-                        if (id2point.get(pointId).distance2to(p) < bestDist2) {
-                            bestNN = pointId;
-                            bestDist2 = id2point.get(pointId).distance2to(p);
-                        }
-                    }
-                    if (contains(bestNN, p)) {
-                        return bestNN;
-                    }
-                } else {
-                    for (RTree v : u.sons) {
-                        heap.add(v);
-                    }
-                }
-            }
-            return -1;
+            return rTree.getNearestNeighbor(p);
         }
 
+        protected class RTree implements Index {
+            private final Rectangle cover;
+            private final Set<Integer> pointIds;
 
-        protected class RTree {
-            private Rectangle cover;
-            public ArrayList<RTree> sons = new ArrayList();
-            private ArrayList<Integer> pointIds;
+            public final List<RTree> sons = new ArrayList<>();
 
-            public RTree(Collection<Integer> pointIds) {
-                this.cover = new Rectangle(id2point.get(pointIds).values());
-                this.pointIds = new ArrayList(pointIds);
+            public RTree() {
+                cover = new Rectangle(id2point.get(getVertices()).values());
+                pointIds = getVertices();
+            }
+
+            public RTree(final RTree t) {
+                cover = t.cover;
+                pointIds = new HashSet<>(t.pointIds);
+                for (RTree son : t.sons) {
+                    sons.add(new RTree(son));
+                }
             }
 
             @Override
-            protected Object clone() {
-                RTree t;
-                try {
-                    t = (RTree) super.clone();
-                } catch (CloneNotSupportedException e) {
-                    throw new InternalError(e.toString());
+            public int getNearestNeighbor(final Point p) {
+                final PriorityQueue<RTree> heap = new PriorityQueue<>(rTree.sons.size() + 1, new Comparator<RTree>() {
+                    @Override
+                    public int compare(RTree v1, RTree v2) {
+                        return Long.compare(v1.cover.distance2to(p), v2.cover.distance2to(p));
+                    }
+                });
+                heap.add(rTree);
+                long bestDist2 = Long.MAX_VALUE;
+                int bestNN = -1;
+                while (!heap.isEmpty()) {
+                    RTree u = heap.poll();
+                    if (u.sons.isEmpty()) {
+                        for (int pointId : u.pointIds) {
+                            if (id2point.get(pointId).distance2to(p) < bestDist2) {
+                                bestNN = pointId;
+                                bestDist2 = id2point.get(pointId).distance2to(p);
+                            }
+                        }
+                        if (contains(bestNN, p)) {
+                            return bestNN;
+                        }
+                    } else {
+                        for (RTree v : u.sons) {
+                            heap.add(v);
+                        }
+                    }
                 }
-                t.cover = (Rectangle) cover.clone();
-                for (RTree son : sons) {
-                    t.sons.add((RTree) son.clone());
-                }
-                t.pointIds = new ArrayList(pointIds);
-                return t;
+                return -1;
             }
         }
     }

@@ -7,13 +7,15 @@ import java.util.List;
 import java.util.Map;
 
 public interface PointDepot {
+
     Point get(int id);
 
-    Map<Integer, Point> get(Iterable<Integer> ids);
+    Map<Integer, Point> get(final Iterable<Integer> ids);
 
     int add(Point p);
 
-    Collection<Integer> add(Iterable<Point> points);
+    Collection<Integer> add(final Iterable<Point> points);
 
     void clear();
+
 }

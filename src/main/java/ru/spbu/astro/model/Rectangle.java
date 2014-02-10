@@ -1,34 +1,36 @@
 package ru.spbu.astro.model;
 
-import org.w3c.dom.css.Rect;
+import com.google.common.collect.Iterables;
 import ru.spbu.astro.graphics.Framable;
-import ru.spbu.astro.model.Point;
 
-import java.util.*;
+import java.util.Arrays;
 
-public class Rectangle implements Framable {
-    private Point minVertex;
-    private Point maxVertex;
+public final class Rectangle implements Framable {
+    private final Point minVertex;
+    private final Point maxVertex;
 
-    public Rectangle(Point... points) {
+    public Rectangle(final Point... points) {
         this(Arrays.asList(points));
     }
 
-    public Rectangle(Collection<Point> points) {
-        for (Point p : points) {
-            if (minVertex == null) {
-                minVertex = p;
-            }
-            if (maxVertex == null) {
-                maxVertex = p;
-            }
+    public Rectangle(final Iterable<Point> points) {
+        Point minVertex = Iterables.get(points, 0);
+        Point maxVertex = Iterables.get(points, 0);
+        for (final Point p : points) {
             minVertex = minVertex.min(p);
             maxVertex = maxVertex.max(p);
         }
+        this.minVertex = minVertex;
+        this.maxVertex = maxVertex;
     }
 
-    public Rectangle add(Rectangle rect) {
-        return new Rectangle(minVertex.min(rect.getMinVertex()), maxVertex.max(rect.getMaxVertex()));
+    public Rectangle(final Rectangle rect) {
+        minVertex = rect.minVertex;
+        maxVertex = rect.maxVertex;
+    }
+
+    public Rectangle add(final Rectangle rect) {
+        return new Rectangle(minVertex.min(rect.minVertex), maxVertex.max(rect.maxVertex));
     }
 
     public long getX() {
@@ -63,7 +65,7 @@ public class Rectangle implements Framable {
         return minVertex.add(maxVertex).multiply(0.5);
     }
 
-    public boolean contains(Point p) {
+    public boolean contains(final Point p) {
         if (p.dim() != dim()) {
             return false;
         }
@@ -75,7 +77,7 @@ public class Rectangle implements Framable {
         return true;
     }
 
-    public long distance2to(Point p) {
+    public long distance2to(final Point p) {
         if (contains(p)) {
             return 0;
         }
@@ -92,27 +94,11 @@ public class Rectangle implements Framable {
 
     @Override
     public String toString() {
-        return "ru.spbu.astro.model.Rectangle(" +
-                "minVertex = " + minVertex +
-                ", maxVertex = " + maxVertex +
-                ')';
+        return "Rectangle(minVertex = " + minVertex + ", maxVertex = " + maxVertex + ")";
     }
 
     @Override
     public Rectangle getFrameRectangle() {
         return this;
-    }
-
-    @Override
-    public Object clone() {
-        Rectangle rect;
-        try {
-            rect = (Rectangle) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new InternalError(e.toString());
-        }
-        rect.minVertex = (Point) minVertex.clone();
-        rect.maxVertex = (Point) maxVertex.clone();
-        return rect;
     }
 }

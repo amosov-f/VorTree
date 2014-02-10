@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 public class Plotter {
-    public static Plot linePlot(String name, Color color, Map<Integer, ? extends Number> f) {
-        List<Integer> keyList = new ArrayList(f.keySet());
+    public static Plot linePlot(final String name, final Color color, final Map<Integer, ? extends Number> f) {
+        final List<Integer> keyList = new ArrayList<>(f.keySet());
         Collections.sort(keyList);
 
         double[][] xy = new double[keyList.size()][2];

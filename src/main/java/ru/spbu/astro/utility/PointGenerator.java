@@ -6,22 +6,22 @@ import ru.spbu.astro.model.Rectangle;
 
 import java.util.*;
 
-public class PointGenerator {
-    public static List<Point> nextUniforms(int n, Rectangle rect) {
-        Set<Point> points = new HashSet();
+public final class PointGenerator {
+    public static List<Point> nextUniforms(int n, final Rectangle rect) {
+        Set<Point> points = new HashSet<>();
         while (points.size() < n) {
-            Point p = new Point(rect.dim());
-            for (int d = 0; d < p.dim(); ++d) {
+            long[] coordinates = new long[rect.dim()];
+            for (int d = 0; d < coordinates.length; ++d) {
                 long l = rect.getMinVertex().get(d);
                 long r = rect.getMaxVertex().get(d);
-                p.set(d, new RandomDataGenerator().nextLong(l, r));
+                coordinates[d] = new RandomDataGenerator().nextLong(l, r);
             }
-            points.add(p);
+            points.add(new Point(coordinates));
         }
-        return new ArrayList(points);
+        return new ArrayList<>(points);
     }
 
-    public static List<Point> nextUniforms(int n, Point p) {
+    public static List<Point> nextUniforms(int n, final Point p) {
         return nextUniforms(n, new Rectangle(new Point[]{new Point(p.dim()), p}));
     }
 
@@ -33,16 +33,16 @@ public class PointGenerator {
         return nextUniforms(n, 10000000, 10000000);
     }
 
-    public static List<Point> nextGaussians(int n, Point center, double sigma) {
-        Set<Point> points = new HashSet();
+    public static List<Point> nextGaussians(int n, final Point center, double sigma) {
+        Set<Point> points = new HashSet<>();
         for (int i = 0; i < n; ++i) {
-            Point p = new Point(center.dim());
-            for (int d = 0; d < p.dim(); ++d) {
-                p.set(d, (long) new RandomDataGenerator().nextGaussian(center.get(d), sigma));
+            long[] coordinates = new long[center.dim()];
+            for (int d = 0; d < coordinates.length; ++d) {
+                coordinates[d] = (long) new RandomDataGenerator().nextGaussian(center.get(d), sigma);
             }
-            points.add(p);
+            points.add(new Point(coordinates));
         }
-        return new ArrayList(points);
+        return new ArrayList<>(points);
     }
 
     public static List<Point> nextGaussians(int n, int x, int y) {

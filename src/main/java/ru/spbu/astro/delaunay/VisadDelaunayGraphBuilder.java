@@ -6,34 +6,34 @@ import visad.VisADException;
 
 import java.util.*;
 
-public class VisadDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
+public final class VisadDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
 
-    public VisadDelaunayGraphBuilder(Iterable<Point> points) {
+    public VisadDelaunayGraphBuilder(final Iterable<Point> points) {
         super(points);
     }
 
-    public VisadDelaunayGraphBuilder(Collection<Integer> pointIds) {
+    public VisadDelaunayGraphBuilder(final Collection<Integer> pointIds) {
         super(pointIds);
     }
 
     @Override
-    public AbstractDelaunayGraph build(Collection<Integer> pointIds) {
+    public AbstractDelaunayGraph build(final Collection<Integer> pointIds) {
         return new VisadDelaunayGraph(pointIds);
     }
 
     public class VisadDelaunayGraph extends AbstractDelaunayGraph {
 
-        private Delaunay delaunay;
-        private List<Integer> index2pointId;
+        private final Delaunay delaunay;
+        private final List<Integer> index2pointId;
 
         public VisadDelaunayGraph(final Collection<Integer> pointIds) {
             super(pointIds);
 
-            index2pointId = new ArrayList(pointIds);
-            float[][] samples = new float[dim][pointIds.size()];
+            index2pointId = new ArrayList<>(pointIds);
 
+            final float[][] samples = new float[dim()][pointIds.size()];
             for (int i = 0; i < index2pointId.size(); ++i) {
-                for (int d = 0; d < dim; ++d) {
+                for (int d = 0; d < dim(); ++d) {
                     samples[d][i] = (float) id2point.get(index2pointId.get(i)).get(d);
                 }
             }
@@ -41,12 +41,7 @@ public class VisadDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
             try {
                 delaunay = Delaunay.factory(samples, false);
             } catch (VisADException e) {
-                e.printStackTrace();
-                return;
-            }
-
-            if (delaunay == null) {
-                return;
+                throw new InternalError(e.toString());
             }
 
             for (int t = 0; t < delaunay.Tri.length; ++t) {
@@ -54,8 +49,8 @@ public class VisadDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
             }
         }
 
-        private ArrayList<Integer> toPointIds(int[] indexes) {
-            ArrayList<Integer> ids = new ArrayList(indexes.length);
+        private List<Integer> toPointIds(int[] indexes) {
+            final List<Integer> ids = new ArrayList<>(indexes.length);
             for (int index : indexes) {
                 ids.add(index2pointId.get(index));
             }
@@ -66,5 +61,7 @@ public class VisadDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
         public String toString() {
             return delaunay.toString();
         }
+
     }
+
 }

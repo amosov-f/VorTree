@@ -4,18 +4,19 @@ import java.io.Serializable;
 import java.util.*;
 
 public class Graph implements Iterable<Graph.Edge>, Cloneable, Serializable {
-    protected HashMap<Integer, Set<Integer>> neighbors = new HashMap();
+    private final Map<Integer, Set<Integer>> neighbors;
 
     public Graph() {
+        neighbors = new HashMap<>();
     }
 
     public Graph(Graph g) {
-        this.neighbors = new HashMap(g.neighbors);
+        neighbors = new HashMap<>(g.neighbors);
     }
 
     public void addVertex(int u) {
         if (!containsVertex(u)) {
-            neighbors.put(u, new HashSet());
+            neighbors.put(u, new HashSet<Integer>());
         }
     }
 
@@ -41,12 +42,6 @@ public class Graph implements Iterable<Graph.Edge>, Cloneable, Serializable {
     public void addGraph(Graph g) {
         for (Edge edge : g) {
             addEdge(edge);
-        }
-    }
-
-    public void removeVertex(int u) {
-        if (containsVertex(u)) {
-            neighbors.remove(u);
         }
     }
 
@@ -85,14 +80,15 @@ public class Graph implements Iterable<Graph.Edge>, Cloneable, Serializable {
 
     public boolean containsGraph(final Graph g) {
         for (Edge edge : g) {
-            if (!neighbors.containsKey(edge.getFirst())) {
-                return false;
-            }
-            if (!neighbors.get(edge.getFirst()).contains(edge.getSecond())) {
+            if (!containsEdge(edge)) {
                 return false;
             }
         }
         return true;
+    }
+
+    public Set<Integer> getNeighbors(int u) {
+        return neighbors.get(u);
     }
 
     public Set<Integer> getVertices() {
@@ -100,7 +96,7 @@ public class Graph implements Iterable<Graph.Edge>, Cloneable, Serializable {
     }
 
     public List<Edge> getEdges() {
-        List<Edge> edges = new ArrayList();
+        List<Edge> edges = new ArrayList<>();
         for (Map.Entry<Integer, Set<Integer>> entry : neighbors.entrySet()) {
             int u = entry.getKey();
             for (int v : entry.getValue()) {
@@ -113,24 +109,6 @@ public class Graph implements Iterable<Graph.Edge>, Cloneable, Serializable {
 
     public int size() {
         return neighbors.size();
-    }
-
-    public boolean isEmpty() {
-        return size() == 0;
-    }
-
-    @Override
-    protected Object clone() {
-        Graph g;
-        try {
-            g = (Graph) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new InternalError(e.toString());
-        }
-
-        g.neighbors = (HashMap) neighbors.clone();
-
-        return g;
     }
 
     @Override
@@ -147,7 +125,7 @@ public class Graph implements Iterable<Graph.Edge>, Cloneable, Serializable {
         return str + "\n";
     }
 
-    public static class Edge {
+    protected final static class Edge {
         private final int first;
         private final int second;
 

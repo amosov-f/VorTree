@@ -16,15 +16,15 @@
         <constructor-arg ref="dataSource"/>
     </bean>
 
-    <bean id="pointDepot" class="ru.spbu.astro.db.SQLPointDepot">
+    <bean id="sqlPointDepot" class="ru.spbu.astro.db.SQLPointDepot">
         <property name="simpleJdbcTemplate" ref="simpleJdbcTemplate"/>
     </bean>
 
-    <!--bean id="pointDepot" class="ru.spbu.astro.db.MapPointDepot">
-    </bean-->
+    <bean id="mapPointDepot" class="ru.spbu.astro.db.MapPointDepot">
+    </bean>
 
     <bean id="rTreeBuilder" class="ru.spbu.astro.search.RTreeBuilder">
-        <property name="pointDepot" ref="pointDepot"/>
+        <property name="pointDepot" ref="sqlPointDepot"/>
     </bean>
 
 

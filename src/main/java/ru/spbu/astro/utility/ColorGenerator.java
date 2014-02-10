@@ -3,7 +3,7 @@ package ru.spbu.astro.utility;
 import java.awt.*;
 import java.util.Random;
 
-public class ColorGenerator {
+public final class ColorGenerator {
 
     public static final Color EDGE_DEFAULT = new Color(140, 100, 140);
 

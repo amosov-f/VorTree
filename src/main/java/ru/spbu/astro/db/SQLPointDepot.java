@@ -1,16 +1,19 @@
 package ru.spbu.astro.db;
 
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import ru.spbu.astro.model.Point;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class SQLPointDepot implements PointDepot {
+public final class SQLPointDepot implements PointDepot {
 
     private SimpleJdbcTemplate simpleJdbcTemplate;
 
@@ -26,7 +29,7 @@ public class SQLPointDepot implements PointDepot {
     }
 
     @Override
-    public Map<Integer, Point> get(Iterable<Integer> ids) {
+    public Map<Integer, Point> get(final Iterable<Integer> ids) {
         String query = "(";
         for (Integer id : ids) {
             query += id + ", ";
@@ -34,26 +37,26 @@ public class SQLPointDepot implements PointDepot {
         query = query.substring(0, query.length() - 2);
         query += ")";
 
-        List<Coordinate> coordinateList = simpleJdbcTemplate.query(
+        final List<Coordinate> coordinateList = simpleJdbcTemplate.query(
                 "SELECT * FROM point WHERE point_id IN " + query,
                 getRowMapper()
         );
 
-        Map<Integer, List<Coordinate>> id2coordinates = new HashMap();
+        final Map<Integer, List<Coordinate>> id2coordinates = new HashMap<>();
 
-        for (Coordinate coordinate : coordinateList) {
-            if (!id2coordinates.containsKey(coordinate.getPointId())) {
-                List<Coordinate> coordinates = new ArrayList();
+        for (final Coordinate coordinate : coordinateList) {
+            if (!id2coordinates.containsKey(coordinate.pointId)) {
+                final List<Coordinate> coordinates = new ArrayList<>();
                 coordinates.add(coordinate);
-                id2coordinates.put(coordinate.getPointId(), coordinates);
+                id2coordinates.put(coordinate.pointId, coordinates);
             } else {
-                List<Coordinate> coordinates = id2coordinates.get(coordinate.getPointId());
+                final List<Coordinate> coordinates = id2coordinates.get(coordinate.pointId);
                 coordinates.add(coordinate);
-                id2coordinates.put(coordinate.getPointId(), coordinates);
+                id2coordinates.put(coordinate.pointId, coordinates);
             }
         }
 
-        Map<Integer, Point> result = new HashMap();
+        Map<Integer, Point> result = new HashMap<>();
 
         for (Map.Entry<Integer, List<Coordinate>> coordinatesEntry : id2coordinates.entrySet()) {
             result.put(coordinatesEntry.getKey(), makePoint(coordinatesEntry.getValue()));
@@ -85,9 +88,9 @@ public class SQLPointDepot implements PointDepot {
     }
 
     @Override
-    public ArrayList<Integer> add(Iterable<Point> points) {
-        ArrayList<Integer> ids = new ArrayList();
-        for (Point p : points) {
+    public List<Integer> add(final Iterable<Point> points) {
+        List<Integer> ids = new ArrayList<>();
+        for (final Point p : points) {
             ids.add(add(p));
         }
         return ids;
@@ -98,21 +101,19 @@ public class SQLPointDepot implements PointDepot {
         simpleJdbcTemplate.update("DELETE FROM point");
     }
 
-    private static Point makePoint(List<Coordinate> coordinates) {
+    private static Point makePoint(final Iterable<Coordinate> coordinates) {
         int maxIndex = 0;
-        for (Coordinate coordinate : coordinates) {
-            maxIndex = Math.max(maxIndex, coordinate.getIndex());
+        for (final Coordinate coordinate : coordinates) {
+            maxIndex = Math.max(maxIndex, coordinate.index);
         }
 
-        Point result = new Point(maxIndex + 1);
-        for (Coordinate coordinate : coordinates) {
-            result.set(coordinate.getIndex(), coordinate.getValue());
+        final long[] coordinateArray = new long[maxIndex + 1];
+        for (final Coordinate coordinate : coordinates) {
+            coordinateArray[coordinate.index] = coordinate.value;
         }
 
-        return result;
+        return new Point(coordinateArray);
     }
-
-
 
     private class Coordinate {
         private int pointId;
@@ -122,30 +123,6 @@ public class SQLPointDepot implements PointDepot {
         private Coordinate(int pointId, int index, long value) {
             this.pointId = pointId;
             this.index = index;
-            this.value = value;
-        }
-
-        private int getPointId() {
-            return pointId;
-        }
-
-        private void setPointId(int pointId) {
-            this.pointId = pointId;
-        }
-
-        private int getIndex() {
-            return index;
-        }
-
-        private void setIndex(int index) {
-            this.index = index;
-        }
-
-        private long getValue() {
-            return value;
-        }
-
-        private void setValue(long value) {
             this.value = value;
         }
     }
@@ -165,7 +142,7 @@ public class SQLPointDepot implements PointDepot {
 
     @Required
     public void setSimpleJdbcTemplate(SimpleJdbcTemplate simpleJdbcTemplate) {
-        //System.out.println("!!!");
         this.simpleJdbcTemplate = simpleJdbcTemplate;
     }
+
 }
