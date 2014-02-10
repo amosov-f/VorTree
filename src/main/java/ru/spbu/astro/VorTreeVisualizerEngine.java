@@ -8,7 +8,6 @@ import ru.spbu.astro.delaunay.VisadDelaunayGraphBuilder;
 import ru.spbu.astro.graphics.ClickableView;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.search.VorTreeBuilder;
-import ru.spbu.astro.search.MapReduceVorTreeBuilder;
 import ru.spbu.astro.utility.Plotter;
 import ru.spbu.astro.utility.PointGenerator;
 
@@ -18,9 +17,9 @@ import java.util.Collection;
 
 public class VorTreeVisualizerEngine {
 
-    public static class Picture extends ClickableView {
+    public static class Figure extends ClickableView {
 
-        Picture() {
+        Figure() {
             setSize(1000, 660);
             setBackground(Color.white);
             build();
@@ -52,7 +51,7 @@ public class VorTreeVisualizerEngine {
 
     public static void main(String[] args) {
         JFrame frame = new JFrame();
-        Component component = new Picture();
+        Component component = new Figure();
         frame.add(component);
         frame.setSize(component.getSize());
         frame.setVisible(true);
