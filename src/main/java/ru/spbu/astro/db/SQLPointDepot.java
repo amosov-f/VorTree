@@ -1,6 +1,7 @@
 package ru.spbu.astro.db;
 
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
@@ -25,7 +26,7 @@ public class SQLPointDepot implements PointDepot {
     }
 
     @Override
-    public Map<Integer, Point> get(Collection<Integer> ids) {
+    public Map<Integer, Point> get(Iterable<Integer> ids) {
         String query = "(";
         for (Integer id : ids) {
             query += id + ", ";
@@ -67,6 +68,7 @@ public class SQLPointDepot implements PointDepot {
             return -1;
         }
 
+
         int id = simpleJdbcTemplate.queryForInt("SELECT MAX(point_id) FROM point") + 1;
 
         String query = "";
@@ -83,12 +85,16 @@ public class SQLPointDepot implements PointDepot {
     }
 
     @Override
-    public List<Integer> add(List<Point> points) {
-        return null;
+    public ArrayList<Integer> add(Iterable<Point> points) {
+        ArrayList<Integer> ids = new ArrayList();
+        for (Point p : points) {
+            ids.add(add(p));
+        }
+        return ids;
     }
 
     @Override
-    public void drop() {
+    public void clear() {
         simpleJdbcTemplate.update("DELETE FROM point");
     }
 

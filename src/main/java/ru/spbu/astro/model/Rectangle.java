@@ -102,4 +102,17 @@ public class Rectangle implements Framable {
     public Rectangle getFrameRectangle() {
         return this;
     }
+
+    @Override
+    public Object clone() {
+        Rectangle rect;
+        try {
+            rect = (Rectangle) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new InternalError(e.toString());
+        }
+        rect.minVertex = (Point) minVertex.clone();
+        rect.maxVertex = (Point) maxVertex.clone();
+        return rect;
+    }
 }

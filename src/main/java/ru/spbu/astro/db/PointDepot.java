@@ -9,11 +9,11 @@ import java.util.Map;
 public interface PointDepot {
     Point get(int id);
 
-    Map<Integer, Point> get(Collection<Integer> ids);
+    Map<Integer, Point> get(Iterable<Integer> ids);
 
     int add(Point p);
 
-    List<Integer> add(List<Point> points);
+    Collection<Integer> add(Iterable<Point> points);
 
-    void drop();
+    void clear();
 }

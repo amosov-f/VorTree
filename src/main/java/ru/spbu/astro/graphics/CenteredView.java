@@ -18,11 +18,11 @@ public class CenteredView extends Component {
     protected List<Item> items = new ArrayList();
 
     public enum DelaunayGraphViewMode {
-        DEFAULT, LEVEL, NO_TRIANGLES, CREEP_ONLY;
+        DEFAULT, NO_TRIANGLES, CREEP_ONLY;
     }
 
     public enum TriangleViewMode {
-        DEFAULT, LEVEL, CREEP
+        DEFAULT, CREEP
     }
 
     public abstract class AbstractPainter<T extends Framable> implements Painter<T> {
@@ -152,9 +152,6 @@ public class CenteredView extends Component {
         @Override
         public void paint(Simplex t, Graphics g) {
             Color color = ColorGenerator.nextLight();
-            if (mode == TriangleViewMode.LEVEL) {
-                color = ColorGenerator.nextDeep(t.getLevel());
-            }
             if (mode == TriangleViewMode.CREEP) {
                 color = ColorGenerator.nextRed();
             }
@@ -222,9 +219,6 @@ public class CenteredView extends Component {
             TrianglePainter trianglePainter = null;
             if (mode == DelaunayGraphViewMode.DEFAULT) {
                 trianglePainter = new TrianglePainter(TriangleViewMode.DEFAULT);
-            }
-            if (mode == DelaunayGraphViewMode.LEVEL) {
-                trianglePainter = new TrianglePainter(TriangleViewMode.LEVEL);
             }
 
             if (trianglePainter != null) {

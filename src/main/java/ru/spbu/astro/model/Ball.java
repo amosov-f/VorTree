@@ -6,32 +6,35 @@ import org.apache.commons.math3.linear.BlockFieldMatrix;
 import org.apache.commons.math3.linear.FieldLUDecomposition;
 import ru.spbu.astro.graphics.Framable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class Ball implements Framable {
     private BigFraction[] center;
     private BigFraction radius2;
 
-    public Ball(List<Point> points) {
+    public Ball(Collection<Point> points) {
         int dim = points.size() - 1;
+        ArrayList<Point> pointList = new ArrayList(points);
 
         BigFraction[][] f = new BigFraction[dim][dim];
 
         for (int i = 0; i < f.length; ++i) {
             for (int j = 0; j < f[i].length; ++j) {
-                f[i][j] = new BigFraction(points.get(i + 1).get(j) - points.get(0).get(j));
+                f[i][j] = new BigFraction(pointList.get(i + 1).get(j) - pointList.get(0).get(j));
             }
         }
 
         BigFraction[] b = new BigFraction[dim];
         for (int i = 0; i < b.length; ++i) {
-            b[i] = new BigFraction(points.get(i + 1).sqr() - points.get(0).sqr(), 2L);
+            b[i] = new BigFraction(pointList.get(i + 1).sqr() - pointList.get(0).sqr(), 2L);
         }
 
         FieldLUDecomposition<BigFraction> decomposition = new FieldLUDecomposition(new BlockFieldMatrix<BigFraction>(f));
         center = decomposition.getSolver().solve(new ArrayFieldVector(b)).toArray();
-        radius2 = distance2to(points.get(0));
+        radius2 = distance2to(pointList.get(0));
     }
 
     private BigFraction distance2to(Point p2) {

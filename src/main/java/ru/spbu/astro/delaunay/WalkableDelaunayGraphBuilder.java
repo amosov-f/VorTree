@@ -5,22 +5,29 @@ import ru.spbu.astro.model.Point;
 
 import java.util.*;
 
-public class WalkableDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
-    public WalkableDelaunayGraphBuilder(Collection<Point> points) {
+public abstract class WalkableDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
+    protected WalkableDelaunayGraphBuilder(Iterable<Point> points) {
         super(points);
     }
 
-    @Override
-    public AbstractDelaunayGraph build(Collection<Integer> pointIds, int level) {
-        return new WalkableDelaunayGraph(pointIds);
+    protected WalkableDelaunayGraphBuilder(Collection<Integer> pointIds) {
+        super(pointIds);
     }
 
     public class WalkableDelaunayGraph extends AbstractDelaunayGraph {
-        protected Collection<Integer> borderVertices = new ArrayList();
+        protected ArrayList<Integer> borderVertices = new ArrayList();
         protected HashMap<Simplex, Collection<Simplex> > side2simplexes = new HashMap();
 
-        public WalkableDelaunayGraph(Collection<Integer> pointIds) {
+        protected WalkableDelaunayGraph() {
+        }
+
+        protected WalkableDelaunayGraph(Collection<Integer> pointIds) {
             super(pointIds);
+        }
+
+        protected WalkableDelaunayGraph(WalkableDelaunayGraph g) {
+            super(g);
+            borderVertices = new ArrayList(g.borderVertices);
         }
 
         @Override

@@ -1,4 +1,4 @@
-package ru.spbu.astro.vortree;
+package ru.spbu.astro.search;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.io.FileUtils;
@@ -37,7 +37,7 @@ public class RTreeBuilder {
     private final static int MAX_SONS = 5;
 
     public void build(List<Point> points) throws Exception {
-        pointDepot.drop();
+        pointDepot.clear();
 
         List<Integer> ids = new ArrayList();
         for (Point p : points) {
@@ -227,7 +227,7 @@ public class RTreeBuilder {
     }
 
 
-    public void setPointDepot(SQLPointDepot pointDepot) {
+    public void setPointDepot(PointDepot pointDepot) {
         this.pointDepot = pointDepot;
     }
 }

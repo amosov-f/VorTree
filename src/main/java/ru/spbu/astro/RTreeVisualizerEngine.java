@@ -4,7 +4,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.utility.PointGenerator;
-import ru.spbu.astro.vortree.RTreeBuilder;
+import ru.spbu.astro.search.RTreeBuilder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,7 +19,7 @@ public class RTreeVisualizerEngine {
 
     public static void main(String[] args) throws Exception {
         ApplicationContext context = new ClassPathXmlApplicationContext("application-context.xml");
-        RTreeBuilder tree = (RTreeBuilder)context.getBean("vorTreeBuilder");
+        RTreeBuilder tree = (RTreeBuilder)context.getBean("rTreeBuilder");
 
         List<Point> points = new ArrayList();
         points.addAll(PointGenerator.nextGaussians(POINTS_COUNT / 2));

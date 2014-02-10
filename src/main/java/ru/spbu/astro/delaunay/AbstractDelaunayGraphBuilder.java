@@ -1,116 +1,75 @@
 package ru.spbu.astro.delaunay;
 
+import com.google.common.collect.Iterables;
 import javafx.util.Pair;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import ru.spbu.astro.db.MapPointDepot;
+import ru.spbu.astro.db.PointDepot;
+import ru.spbu.astro.db.SQLPointDepot;
 import ru.spbu.astro.graphics.Framable;
 import ru.spbu.astro.model.*;
 
 import java.util.*;
 
 public abstract class AbstractDelaunayGraphBuilder {
-    public final Map<Integer, Point> id2point;
+    protected final PointDepot id2point =
+            (PointDepot) new ClassPathXmlApplicationContext("application-context.xml").getBean("pointDepot");
+    private final Collection<Integer> pointIds;
     protected final int dim;
 
-    public AbstractDelaunayGraphBuilder(Collection<Point> points) {
-        List<Point> pointList = new ArrayList(points);
-        dim = pointList.get(0).dim();
-        id2point = new HashMap();
-        for (int i = 0; i < pointList.size(); ++i) {
-            id2point.put(i, pointList.get(i));
-        }
+    protected AbstractDelaunayGraphBuilder(Collection<Integer> pointIds) {
+        dim = id2point.get(Iterables.get(pointIds, 0)).dim();
+        this.pointIds = new ArrayList(pointIds);
     }
 
-    public abstract AbstractDelaunayGraph build(Collection<Integer> pointIds, int level);
-
-    public AbstractDelaunayGraph build(final Collection<Integer> pointIds) {
-        return build(pointIds, 0);
+    protected AbstractDelaunayGraphBuilder(Iterable<Point> points) {
+        dim = Iterables.get(points, 0).dim();
+        id2point.clear();
+        pointIds = id2point.add(points);
     }
+
+    public abstract AbstractDelaunayGraph build(Collection<Integer> pointIds);
 
     public AbstractDelaunayGraph build() {
-        return build(id2point.keySet());
-    }
-
-
-    public Pair<Collection<AbstractDelaunayGraph>, Map<Integer, Integer>> split(final Collection<Integer> pointIds, int m, int level) {
-
-        List<Integer> perm = new ArrayList();
-        for (Integer pointId : pointIds)  {
-            perm.add(pointId);
-        }
-        Collections.shuffle(perm);
-
-
-        List<Integer> pivotIds = new ArrayList();
-        for (int i = 0; i < Math.min(m, perm.size()); ++i) {
-            pivotIds.add(perm.get(i));
-        }
-
-        Map<Integer, Integer> pointId2pivotId = new HashMap();
-        for (Integer pointId : pointIds) {
-            pointId2pivotId.put(pointId, pivotIds.get(0));
-            Point p = id2point.get(pointId);
-            for (Integer pivotId : pivotIds) {
-                if (p.distance2to(id2point.get(pivotId)) < p.distance2to(id2point.get(pointId2pivotId.get(pointId)))) {
-                    pointId2pivotId.put(pointId, pivotId);
-                }
-            }
-        }
-
-        Map<Integer, Collection<Integer>> pivotId2cell = new HashMap();
-
-        for (Map.Entry<Integer, Integer> entry : pointId2pivotId.entrySet()) {
-            int pointId = entry.getKey();
-            int pivotId = entry.getValue();
-            if (!pivotId2cell.containsKey(pivotId)) {
-                pivotId2cell.put(pivotId, new HashSet());
-            }
-            pivotId2cell.get(pivotId).add(pointId);
-        }
-
-        Collection<AbstractDelaunayGraph> delaunayGraphs = new ArrayList();
-
-        //System.out.println(pivotId2cell.values());
-
-        for (Collection<Integer> cell : pivotId2cell.values()) {
-            delaunayGraphs.add(build(cell, level + 1));
-        }
-
-        return new Pair(delaunayGraphs, pointId2pivotId);
-    }
-
-    public Pair<Collection<AbstractDelaunayGraph>, Map<Integer, Integer>> split(int m) {
-        return split(id2point.keySet(), m, 0);
-    }
-
-    public final Point getPoint(int pointId) {
-        return id2point.get(pointId);
-    }
-
-    public final ArrayList<Point> getPoints(Iterable<Integer> pointIds) {
-        ArrayList<Point> points = new ArrayList();
-        for (Integer pointId : pointIds) {
-            points.add(id2point.get(pointId));
-        }
-        return points;
+        return build(pointIds);
     }
 
 
     public abstract class AbstractDelaunayGraph extends Triangulation implements Framable {
 
-        public AbstractDelaunayGraph(final Collection<Integer> pointIds) {
+        public AbstractDelaunayGraph() {
+
+        }
+
+        public AbstractDelaunayGraph(Collection<Integer> pointIds) {
             addVertices(pointIds);
             if (pointIds.size() <= dim) {
                 addGraph(new Simplex(pointIds).toGraph());
             }
         }
 
+        public AbstractDelaunayGraph(AbstractDelaunayGraph g) {
+            super(g);
+        }
+
         public boolean contains(int u, Point p) {
             //System.out.println(u);
             for (int v : neighbors.get(u)) {
-                if (getPoint(v).distance2to(p) < getPoint(u).distance2to(p)) {
+                if (id2point.get(v).distance2to(p) < id2point.get(u).distance2to(p)) {
                     return false;
                 }
             }
             return true;
+        }
+
+        public boolean isCreep(Simplex s) {
+            Ball b = new Ball(getPoints(s));
+            for (Point p : getPoints()) {
+                if (b.contains(p)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public HashSet<Integer> getBindPointIds(AbstractDelaunayGraph g) {
@@ -158,28 +117,17 @@ public abstract class AbstractDelaunayGraphBuilder {
         public List<Line> getPointEdges() {
             List<Line> edges = new ArrayList();
             for (Edge edge : getEdges()) {
-                edges.add(new Line(getPoint(edge.getFirst()), getPoint(edge.getSecond())));
+                edges.add(new Line(id2point.get(edge.getFirst()), id2point.get(edge.getSecond())));
             }
             return edges;
         }
 
-        public final ArrayList<Point> getPoints() {
-            return AbstractDelaunayGraphBuilder.this.getPoints(getVertices());
+        public final Collection<Point> getPoints() {
+            return id2point.get(getVertices()).values();
         }
 
-        public final ArrayList<Point> getPoints(Simplex s) {
-            return AbstractDelaunayGraphBuilder.this.getPoints(s.getVertices());
-        }
-
-        public boolean isCreep(Simplex s) {
-            Ball b = new Ball(getPoints(s));
-            //System.out.println(getPoints().size());
-            for (Point p : getPoints()) {
-                if (b.contains(p)) {
-                    return true;
-                }
-            }
-            return false;
+        public final Collection<Point> getPoints(Simplex s) {
+            return id2point.get(s.getVertices()).values();
         }
 
         @Override

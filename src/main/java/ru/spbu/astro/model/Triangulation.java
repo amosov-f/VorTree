@@ -7,6 +7,14 @@ import java.util.*;
 public class Triangulation extends Graph {
     protected HashSet<Simplex> simplexes = new HashSet();
 
+    protected Triangulation() {
+    }
+
+    protected Triangulation(Triangulation t) {
+        super(t);
+        simplexes = new HashSet(t.simplexes);
+    }
+
     public Collection<Integer> getBorderVertices() {
         if (simplexes.size() == 0) {
             return getVertices();
@@ -68,28 +76,14 @@ public class Triangulation extends Graph {
 
     public static class Simplex {
         private ArrayList<Integer> vertices;
-        private int level;
 
         public Simplex(Collection<Integer> vertices) {
-            this(vertices, 0);
-        }
-
-        public Simplex(Collection<Integer> vertices, int level) {
             this.vertices = new ArrayList(vertices);
             Collections.sort(this.vertices);
-            this.level = level;
-        }
-
-        public int getLevel() {
-            return level;
-        }
-
-        public void setLevel(int level) {
-            this.level = level;
         }
 
         public ArrayList<Integer> getVertices() {
-            return (ArrayList) vertices.clone();
+            return vertices;
         }
 
         public Graph toGraph() {

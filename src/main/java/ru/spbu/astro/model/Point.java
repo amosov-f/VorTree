@@ -3,10 +3,11 @@ package ru.spbu.astro.model;
 import com.google.common.primitives.Longs;
 import ru.spbu.astro.graphics.Framable;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class Point implements Iterable<Long>, Framable {
+public class Point implements Iterable<Long>, Framable, Serializable {
     private long[] coordinates;
 
     public Point(int dim) {
@@ -163,5 +164,17 @@ public class Point implements Iterable<Long>, Framable {
     @Override
     public Rectangle getFrameRectangle() {
         return new Rectangle(this);
+    }
+
+    @Override
+    public Object clone() {
+        Point p;
+        try {
+            p = (Point) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new InternalError(e.toString());
+        }
+        p.coordinates = coordinates.clone();
+        return p;
     }
 }

@@ -7,12 +7,16 @@ import java.util.*;
 public class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
     public static Map<Integer, Integer> count = new HashMap();
 
-    public NativeDelaunayGraphBuilder(Collection<Point> points) {
+    public NativeDelaunayGraphBuilder(Iterable<Point> points) {
         super(points);
     }
 
+    public NativeDelaunayGraphBuilder(Collection<Integer> pointIds) {
+        super(pointIds);
+    }
+
     @Override
-    public AbstractDelaunayGraph build(Collection<Integer> pointIds, int level) {
+    public AbstractDelaunayGraph build(Collection<Integer> pointIds) {
         return new NativeDelaunayGraph(pointIds);
     }
 

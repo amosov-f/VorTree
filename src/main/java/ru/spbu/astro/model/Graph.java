@@ -1,9 +1,17 @@
 package ru.spbu.astro.model;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class Graph implements Iterable<Graph.Edge>, Cloneable {
+public class Graph implements Iterable<Graph.Edge>, Cloneable, Serializable {
     protected HashMap<Integer, Set<Integer>> neighbors = new HashMap();
+
+    public Graph() {
+    }
+
+    public Graph(Graph g) {
+        this.neighbors = new HashMap(g.neighbors);
+    }
 
     public void addVertex(int u) {
         if (!containsVertex(u)) {
@@ -113,16 +121,16 @@ public class Graph implements Iterable<Graph.Edge>, Cloneable {
 
     @Override
     protected Object clone() {
-        Graph graph;
+        Graph g;
         try {
-            graph = (Graph) super.clone();
-        } catch(CloneNotSupportedException e) {
+            g = (Graph) super.clone();
+        } catch (CloneNotSupportedException e) {
             throw new InternalError(e.toString());
         }
 
-        graph.neighbors = (HashMap) neighbors.clone();
+        g.neighbors = (HashMap) neighbors.clone();
 
-        return graph;
+        return g;
     }
 
     @Override

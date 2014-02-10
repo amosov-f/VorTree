@@ -20,6 +20,7 @@ public class PointReducer extends Reducer<IntWritable, IntWritable, NullWritable
         }
         System.out.println();   */
 
+        System.out.println("reduce");
         String result = "";
         for (IntWritable value : values) {
             result += value + " ";

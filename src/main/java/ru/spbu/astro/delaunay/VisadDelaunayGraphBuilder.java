@@ -8,12 +8,16 @@ import java.util.*;
 
 public class VisadDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
 
-    public VisadDelaunayGraphBuilder(final Collection<Point> points) {
+    public VisadDelaunayGraphBuilder(Iterable<Point> points) {
         super(points);
     }
 
+    public VisadDelaunayGraphBuilder(Collection<Integer> pointIds) {
+        super(pointIds);
+    }
+
     @Override
-    public AbstractDelaunayGraph build(Collection<Integer> pointIds, int level) {
+    public AbstractDelaunayGraph build(Collection<Integer> pointIds) {
         return new VisadDelaunayGraph(pointIds);
     }
 
@@ -60,9 +64,7 @@ public class VisadDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
 
         @Override
         public String toString() {
-            return "VisadDelaunayGraph{" +
-                    "delaunay=" + delaunay +
-                    '}';
+            return delaunay.toString();
         }
     }
 }

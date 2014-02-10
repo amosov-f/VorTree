@@ -1,4 +1,4 @@
-package ru.spbu.astro.vortree;
+package ru.spbu.astro.search;
 
 import ru.spbu.astro.model.Point;
 

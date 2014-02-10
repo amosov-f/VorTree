@@ -20,8 +20,53 @@ public class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder {
     }
 
     @Override
-    public AbstractDelaunayGraph build(Collection<Integer> pointIds, int level) {
-        return new BindDelaunayGraph(pointIds, level);
+    public AbstractDelaunayGraph build(Collection<Integer> pointIds) {
+        return new BindDelaunayGraph(pointIds);
+    }
+
+    public Pair<Collection<AbstractDelaunayGraph>, Map<Integer, Integer>> split(final Collection<Integer> pointIds, int m, int level) {
+
+        List<Integer> perm = new ArrayList();
+        for (Integer pointId : pointIds)  {
+            perm.add(pointId);
+        }
+        Collections.shuffle(perm);
+
+
+        List<Integer> pivotIds = new ArrayList();
+        for (int i = 0; i < Math.min(m, perm.size()); ++i) {
+            pivotIds.add(perm.get(i));
+        }
+
+        Map<Integer, Integer> pointId2pivotId = new HashMap();
+        for (Integer pointId : pointIds) {
+            pointId2pivotId.put(pointId, pivotIds.get(0));
+            Point p = id2point.get(pointId);
+            for (Integer pivotId : pivotIds) {
+                if (p.distance2to(id2point.get(pivotId)) < p.distance2to(id2point.get(pointId2pivotId.get(pointId)))) {
+                    pointId2pivotId.put(pointId, pivotId);
+                }
+            }
+        }
+
+        Map<Integer, Collection<Integer>> pivotId2cell = new HashMap();
+
+        for (Map.Entry<Integer, Integer> entry : pointId2pivotId.entrySet()) {
+            int pointId = entry.getKey();
+            int pivotId = entry.getValue();
+            if (!pivotId2cell.containsKey(pivotId)) {
+                pivotId2cell.put(pivotId, new HashSet());
+            }
+            pivotId2cell.get(pivotId).add(pointId);
+        }
+
+        Collection<AbstractDelaunayGraph> delaunayGraphs = new ArrayList();
+
+        for (Collection<Integer> cell : pivotId2cell.values()) {
+            delaunayGraphs.add(build(cell));
+        }
+
+        return new Pair(delaunayGraphs, pointId2pivotId);
     }
 
     public class BindDelaunayGraph extends WalkableDelaunayGraph {
@@ -61,7 +106,7 @@ public class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder {
                 bindDelanayGraph = nativeDelaunayGraphBuilder.build(bindPointIds);
             }
 
-            borderVertices = bindDelanayGraph.getBorderVertices();
+            borderVertices = new ArrayList(bindDelanayGraph.getBorderVertices());
 
             Graph newEdges = new Graph();
             for (Edge edge : bindDelanayGraph) {
@@ -79,7 +124,6 @@ public class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder {
                 if (containsGraph(simplex.toGraph())) {
                     for (Edge edge : newEdges) {
                         if (simplex.toGraph().containsEdge(edge)) {
-                            simplex.setLevel(level);
                             addSimplex(simplex);
                             break;
                         }

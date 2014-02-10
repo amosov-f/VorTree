@@ -9,7 +9,6 @@ import java.util.List;
 
 public class Simplex implements Framable {
     List<Point> vertices = new ArrayList();
-    int level;
 
     public Simplex(Point... points) {
         this(Arrays.asList(points));
@@ -17,10 +16,6 @@ public class Simplex implements Framable {
 
     public Simplex(Collection<Point> points) {
         vertices = new ArrayList(points);
-    }
-
-    public int getLevel() {
-        return level;
     }
 
     public List<Point> getVertices() {

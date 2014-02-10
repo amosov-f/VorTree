@@ -3,14 +3,12 @@ package ru.spbu.astro;
 import org.math.plot.FrameView;
 import org.math.plot.Plot2DPanel;
 import ru.spbu.astro.delaunay.AbstractDelaunayGraphBuilder;
-import ru.spbu.astro.delaunay.BindDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.NativeDelaunayGraphBuilder;
-import ru.spbu.astro.delaunay.VisadDelaunayGraphBuilder;
 import ru.spbu.astro.graphics.ClickableView;
 import ru.spbu.astro.model.Point;
+import ru.spbu.astro.search.mapreduce.MapReduceVorTreeBuilder;
 import ru.spbu.astro.utility.Plotter;
 import ru.spbu.astro.utility.PointGenerator;
-import ru.spbu.astro.vortree.VorTreeBuilder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,14 +26,15 @@ public class VorTreeVisualizerEngine {
 
         @Override
         public void build() {
-            Collection<Point> points = PointGenerator.nextUniforms(1000, 1000 * getWidth(), 1000 * getHeight());
+            Collection<Point> points = PointGenerator.nextUniforms(10, 1000 * getWidth(), 1000 * getHeight());
 
-            AbstractDelaunayGraphBuilder builder1 = new BindDelaunayGraphBuilder(points, 2);
-            AbstractDelaunayGraphBuilder builder2 = new VorTreeBuilder(points, 2);
+
+            //AbstractDelaunayGraphBuilder builder1 = new BindDelaunayGraphBuilder(points, 2);
+            AbstractDelaunayGraphBuilder builder2 = new MapReduceVorTreeBuilder(points, 2);
 
             long t1 = System.currentTimeMillis();
 
-            AbstractDelaunayGraphBuilder.AbstractDelaunayGraph graph1 = builder1.build();
+            //AbstractDelaunayGraphBuilder.AbstractDelaunayGraph graph1 = builder1.build();
 
             long t2 = System.currentTimeMillis();
 

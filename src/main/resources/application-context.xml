@@ -20,7 +20,10 @@
         <property name="simpleJdbcTemplate" ref="simpleJdbcTemplate"/>
     </bean>
 
-    <bean id="rTreeBuilder" class="ru.spbu.astro.vortree.RTreeBuilder">
+    <!--bean id="pointDepot" class="ru.spbu.astro.db.MapPointDepot">
+    </bean-->
+
+    <bean id="rTreeBuilder" class="ru.spbu.astro.search.RTreeBuilder">
         <property name="pointDepot" ref="pointDepot"/>
     </bean>
 

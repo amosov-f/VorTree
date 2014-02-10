@@ -23,24 +23,21 @@ public class PointMapper extends Mapper<LongWritable, Text, IntWritable, IntWrit
     Map<Integer, Point> id2pivot = new HashMap();
 
     public PointMapper() {
-        this.pointDepot = (SQLPointDepot)(new ClassPathXmlApplicationContext("application-context.xml").getBean("pointDepot"));
+        this.pointDepot = (PointDepot) new ClassPathXmlApplicationContext("application-context.xml").getBean("pointDepot");
     }
 
     @Override
     public void setup(Context context) throws IOException, InterruptedException {
-
         List<Integer>  pivotIds = new ArrayList();
         for (String id : context.getConfiguration().get("pivotIds").split("\\s+")) {
             pivotIds.add(Integer.valueOf(id));
         }
 
         this.id2pivot = pointDepot.get(pivotIds);
-
     }
 
     @Override
     public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-
         int id = Integer.valueOf(value.toString());
         Point p = pointDepot.get(id);
         Integer closestId = null;
