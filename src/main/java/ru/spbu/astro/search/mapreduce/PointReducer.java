@@ -1,4 +1,4 @@
-package ru.spbu.astro.mapreduce;
+package ru.spbu.astro.search.mapreduce;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ObjectArrays;
@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Deprecated
 public class PointReducer extends Reducer<IntWritable, IntWritable, NullWritable, Text> {
     @Override
     public void reduce(IntWritable key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {

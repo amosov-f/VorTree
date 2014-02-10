@@ -4,41 +4,38 @@ import ru.spbu.astro.model.Point;
 
 import java.util.*;
 
-public class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
-    public static Map<Integer, Integer> count = new HashMap();
+public final class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
 
-    public NativeDelaunayGraphBuilder(Iterable<Point> points) {
+    public static final Map<Integer, Integer> count = new HashMap<>();
+
+    public NativeDelaunayGraphBuilder(final Iterable<Point> points) {
         super(points);
     }
 
-    public NativeDelaunayGraphBuilder(Collection<Integer> pointIds) {
+    public NativeDelaunayGraphBuilder(final Collection<Integer> pointIds) {
         super(pointIds);
     }
 
     @Override
-    public AbstractDelaunayGraph build(Collection<Integer> pointIds) {
+    public AbstractDelaunayGraph build(final Collection<Integer> pointIds) {
         return new NativeDelaunayGraph(pointIds);
     }
 
     public class NativeDelaunayGraph extends AbstractDelaunayGraph {
 
-        private BitSet mask;
-        private ArrayList<Integer> pointIds;
+        private final List<Integer> pointIds;
 
-        NativeDelaunayGraph(Collection<Integer> pointIds) {
+        NativeDelaunayGraph(final Collection<Integer> pointIds) {
             super(pointIds);
+            this.pointIds = new ArrayList<>(pointIds);
 
-            if (pointIds.size() <= dim) {
+            if (pointIds.size() <= dim()) {
                 return;
             }
-
-            if (pointIds.size() == dim + 1) {
+            if (pointIds.size() == dim() + 1) {
                 addSimplex(new Simplex(pointIds));
                 return;
             }
-
-            this.pointIds = new ArrayList(pointIds);
-            mask = new BitSet(pointIds.size());
 
             System.out.println(pointIds.size());
 
@@ -47,18 +44,18 @@ public class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
             }
             count.put(pointIds.size(), count.get(pointIds.size()) + 1);
 
-            build(0, dim + 1);
+            build(new BitSet(pointIds.size()), 0, dim() + 1);
         }
 
-        private void build(int pos, int rem) {
+        private void build(final BitSet mask, int pos, int rem) {
             if (rem == 0) {
-                ArrayList<Integer> vertices = new ArrayList();
+                final List<Integer> vertices = new ArrayList<>();
                 for (int i = 0; i < mask.size(); ++i) {
                     if (mask.get(i)) {
                         vertices.add(pointIds.get(i));
                     }
                 }
-                Simplex s = new Simplex(vertices);
+                final Simplex s = new Simplex(vertices);
                 if (!isCreep(s)) {
                     addSimplex(s);
                 }
@@ -69,9 +66,11 @@ public class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
             }
 
             mask.set(pos);
-            build(pos + 1, rem - 1);
+            build(mask, pos + 1, rem - 1);
             mask.set(pos, false);
-            build(pos + 1, rem);
+            build(mask, pos + 1, rem);
         }
+
     }
+
 }

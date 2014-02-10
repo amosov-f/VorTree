@@ -9,11 +9,10 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import ru.spbu.astro.RTreeVisualizerEngine;
+import ru.spbu.astro.other.RTreeVisualizerEngine;
 import ru.spbu.astro.db.PointDepot;
-import ru.spbu.astro.db.SQLPointDepot;
-import ru.spbu.astro.mapreduce.PointMapper;
-import ru.spbu.astro.mapreduce.PointReducer;
+import ru.spbu.astro.search.mapreduce.PointMapper;
+import ru.spbu.astro.search.mapreduce.PointReducer;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.model.Rectangle;
 
@@ -27,7 +26,7 @@ import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
 
-
+@Deprecated
 public class RTreeBuilder {
     private VorTree vorTree;
 

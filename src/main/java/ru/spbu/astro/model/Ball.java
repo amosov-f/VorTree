@@ -11,15 +11,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class Ball implements Framable {
-    private BigFraction[] center;
-    private BigFraction radius2;
+public final class Ball implements Framable {
+    private final BigFraction[] center;
+    private final BigFraction radius2;
 
-    public Ball(Collection<Point> points) {
+    public Ball(final Collection<Point> points) {
         int dim = points.size() - 1;
-        ArrayList<Point> pointList = new ArrayList(points);
+        final List<Point> pointList = new ArrayList<>(points);
 
-        BigFraction[][] f = new BigFraction[dim][dim];
+        final BigFraction[][] f = new BigFraction[dim][dim];
 
         for (int i = 0; i < f.length; ++i) {
             for (int j = 0; j < f[i].length; ++j) {
@@ -27,17 +27,17 @@ public class Ball implements Framable {
             }
         }
 
-        BigFraction[] b = new BigFraction[dim];
+        final BigFraction[] b = new BigFraction[dim];
         for (int i = 0; i < b.length; ++i) {
             b[i] = new BigFraction(pointList.get(i + 1).sqr() - pointList.get(0).sqr(), 2L);
         }
 
-        FieldLUDecomposition<BigFraction> decomposition = new FieldLUDecomposition(new BlockFieldMatrix<BigFraction>(f));
-        center = decomposition.getSolver().solve(new ArrayFieldVector(b)).toArray();
+        final FieldLUDecomposition<BigFraction> decomposition = new FieldLUDecomposition<>(new BlockFieldMatrix<>(f));
+        center = decomposition.getSolver().solve(new ArrayFieldVector<>(b)).toArray();
         radius2 = distance2to(pointList.get(0));
     }
 
-    private BigFraction distance2to(Point p2) {
+    private BigFraction distance2to(final Point p2) {
         BigFraction distance2 = BigFraction.ZERO;
         for (int i = 0; i < center.length; ++i) {
             BigFraction cur = center[i].subtract(p2.get(i));
@@ -47,36 +47,32 @@ public class Ball implements Framable {
         return distance2;
     }
 
-    public boolean contains(Point p) {
+    public boolean contains(final Point p) {
         return radius2.compareTo(distance2to(p)) == 1;
     }
 
-    public Ball(Point... points) {
+    public Ball(final Point... points) {
         this(Arrays.asList(points));
     }
 
     public Point getCenter() {
-        Point center = new Point(this.center.length);
-        for (int i = 0; i < this.center.length; ++i) {
-            center.set(i, this.center[i].longValue());
+        final long[] coordinates = new long[center.length];
+        for (int i = 0; i < coordinates.length; ++i) {
+            coordinates[i] = center[i].longValue();
         }
-        return center;
+        return new Point(coordinates);
     }
 
     public long getRadius() {
         return Math.round(Math.sqrt(radius2.doubleValue()));
     }
 
-    public long getRadius2() {
-        return radius2.longValue();
-    }
-
     @Override
     public Rectangle getFrameRectangle() {
-        Point center = getCenter();
+        final Point center = getCenter();
         long r = getRadius();
-        Point minVertex = center.add(-r);
-        Point maxVertex = center.add(r);
+        final Point minVertex = center.add(-r);
+        final Point maxVertex = center.add(r);
         return new Rectangle(minVertex, maxVertex);
     }
 }

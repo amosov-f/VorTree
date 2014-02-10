@@ -1,4 +1,4 @@
-package ru.spbu.astro.mapreduce;
+package ru.spbu.astro.search.mapreduce;
 
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated
 public class PointMapper extends Mapper<LongWritable, Text, IntWritable, IntWritable> {
 
     PointDepot pointDepot;

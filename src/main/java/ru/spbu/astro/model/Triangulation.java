@@ -1,27 +1,26 @@
 package ru.spbu.astro.model;
 
-import com.google.common.primitives.Ints;
-
 import java.util.*;
 
 public class Triangulation extends Graph {
-    protected HashSet<Simplex> simplexes = new HashSet();
+    private final Set<Simplex> simplexes;
 
     protected Triangulation() {
+        simplexes = new HashSet<>();
     }
 
-    protected Triangulation(Triangulation t) {
+    protected Triangulation(final Triangulation t) {
         super(t);
-        simplexes = new HashSet(t.simplexes);
+        simplexes = new HashSet<>(t.simplexes);
     }
 
     public Collection<Integer> getBorderVertices() {
-        if (simplexes.size() == 0) {
+        if (simplexes.isEmpty()) {
             return getVertices();
         }
 
-        HashSet<Integer> borderVertices = new HashSet();
-        HashMap<Simplex, Integer> count = new HashMap();
+        final Set<Integer> borderVertices = new HashSet<>();
+        final Map<Simplex, Integer> count = new HashMap<>();
 
         for (Simplex s : simplexes) {
             for (Simplex side : s.getSides()) {
@@ -41,53 +40,46 @@ public class Triangulation extends Graph {
         return borderVertices;
     }
 
-    public HashSet<Simplex> getSimplexes() {
+    public final Set<Simplex> getSimplexes() {
         return simplexes;
     }
 
-    public void addTriangulation(Triangulation t) {
+    public final void addTriangulation(final Triangulation t) {
         addGraph(t);
-        addSimplexes(t.getSimplexes());
+        addSimplexes(t.simplexes);
     }
 
-    public void addSimplex(Simplex s) {
+    public void addSimplex(final Simplex s) {
         addGraph(s.toGraph());
         simplexes.add(s);
     }
 
-    public Graph removeSimplex(Simplex s) {
+    public Graph removeSimplex(final Simplex s) {
         removeGraph(s.toGraph());
         simplexes.remove(s);
         return s.toGraph();
     }
 
-    public final void addSimplexes(Iterable<Simplex> simplexes) {
+    public final void addSimplexes(final Iterable<Simplex> simplexes) {
         for (Simplex s : simplexes) {
             addSimplex(s);
         }
     }
 
-    @Override
-    public Object clone() {
-        Triangulation graph = (Triangulation) super.clone();
-        graph.simplexes = (HashSet) simplexes.clone();
-        return graph;
-    }
+    public static final class Simplex {
+        private final List<Integer> vertices;
 
-    public static class Simplex {
-        private ArrayList<Integer> vertices;
-
-        public Simplex(Collection<Integer> vertices) {
-            this.vertices = new ArrayList(vertices);
+        public Simplex(final Collection<Integer> vertices) {
+            this.vertices = new ArrayList<>(vertices);
             Collections.sort(this.vertices);
         }
 
-        public ArrayList<Integer> getVertices() {
+        public List<Integer> getVertices() {
             return vertices;
         }
 
         public Graph toGraph() {
-            Graph g = new Graph();
+            final Graph g = new Graph();
             for (int i = 0; i < vertices.size(); ++i) {
                 for (int j = i + 1; j < vertices.size(); ++j) {
                     g.addEdge(vertices.get(i), vertices.get(j));
@@ -96,20 +88,16 @@ public class Triangulation extends Graph {
             return g;
         }
 
-        public ArrayList<Simplex> getSides() {
-            ArrayList<Simplex> sideSimplexes = new ArrayList();
+        public List<Simplex> getSides() {
+            final List<Simplex> sideSimplexes = new ArrayList<>();
 
             for (int i = 0; i < vertices.size(); ++i) {
-                ArrayList<Integer> sideVertices = (ArrayList) vertices.clone();
+                final List<Integer> sideVertices = new ArrayList<>(vertices);
                 sideVertices.remove(i);
                 sideSimplexes.add(new Simplex(sideVertices));
             }
 
             return sideSimplexes;
-        }
-
-        public boolean contains(int vertex) {
-            return vertices.contains(vertex);
         }
 
         @Override
@@ -121,7 +109,7 @@ public class Triangulation extends Graph {
                 return false;
             }
 
-            Simplex simplex = (Simplex) o;
+            final Simplex simplex = (Simplex) o;
 
             return vertices.equals(simplex.vertices);
         }
@@ -136,6 +124,4 @@ public class Triangulation extends Graph {
             return "Simplex(" + vertices + ")";
         }
     }
-
-
 }

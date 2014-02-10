@@ -41,11 +41,14 @@ public class DelaunayMapper extends Mapper<LongWritable, Text, NullWritable, Byt
         VorTreeBuilder builder = new VorTreeBuilder(pointIds, 2);
         VorTreeBuilder.VorTree t = (VorTreeBuilder.VorTree) builder.build();
 
-        System.out.println(t);
-        byte[] bytes = SerializationUtils.serialize(t);
+        Graph g = new Graph();
+        g.addGraph(t);
+
+        System.out.println(g);
+        byte[] bytes = SerializationUtils.serialize(g);
         System.out.println("serialization completed");
 
-        System.out.println(Arrays.toString(bytes));
+        //System.out.println(Arrays.toString(bytes));
 
         context.write(NullWritable.get(), new BytesWritable(bytes));
     }

@@ -3,19 +3,18 @@ package ru.spbu.astro.delaunay;
 import javafx.util.Pair;
 import ru.spbu.astro.model.Graph;
 import ru.spbu.astro.model.Point;
-import ru.spbu.astro.model.Triangulation;
 
 import java.util.*;
 
 @Deprecated
-public class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder {
+public final class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder {
 
-    private NativeDelaunayGraphBuilder nativeDelaunayGraphBuilder;
-    private int m;
+    private final NativeDelaunayGraphBuilder nativeDelaunayGraphBuilder;
+    private final int division;
 
-    public BindDelaunayGraphBuilder(final Collection<Point> points, int m) {
+    public BindDelaunayGraphBuilder(final Collection<Point> points, int division) {
         super(points);
-        this.m = m;
+        this.division = division;
         nativeDelaunayGraphBuilder = new NativeDelaunayGraphBuilder(points);
     }
 
@@ -78,12 +77,11 @@ public class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder {
         public BindDelaunayGraph(Collection<Integer> pointIds, int level) {
             super(pointIds);
 
-            if (pointIds.size() <= dim) {
-                borderVertices.addAll(pointIds);
+            if (pointIds.size() <= dim()) {
                 return;
             }
 
-            Pair<Collection<AbstractDelaunayGraph>, Map<Integer, Integer>> pair = split(pointIds, m, level);
+            Pair<Collection<AbstractDelaunayGraph>, Map<Integer, Integer>> pair = split(pointIds, division, level);
             Map<Integer, Integer> pointId2pivotId = pair.getValue();
 
             Collection<Integer> bindPointIds = new HashSet();
@@ -106,7 +104,7 @@ public class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder {
                 bindDelanayGraph = nativeDelaunayGraphBuilder.build(bindPointIds);
             }
 
-            borderVertices = new ArrayList(bindDelanayGraph.getBorderVertices());
+            borderVertices.addAll(bindDelanayGraph.getBorderVertices());
 
             Graph newEdges = new Graph();
             for (Edge edge : bindDelanayGraph) {
@@ -131,5 +129,7 @@ public class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder {
                 }
             }
         }
+
     }
+
 }

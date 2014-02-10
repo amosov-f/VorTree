@@ -7,26 +7,26 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class Point implements Iterable<Long>, Framable, Serializable {
-    private long[] coordinates;
+public final class Point implements Iterable<Long>, Framable, Serializable {
+    private final long[] coordinates;
 
     public Point(int dim) {
         coordinates = new long[dim];
     }
 
-    public Point(long... coordinates) {
+    public Point(final long... coordinates) {
         this.coordinates = coordinates.clone();
     }
 
-    public Point(long x, long y) {
-        coordinates = new long[]{x, y};
+    public Point(final Point p) {
+        this(p.coordinates);
     }
 
     public long get(int i) {
         return coordinates[i];
     }
 
-    public void set(int i, long val) {
+    private void set(int i, long val) {
         coordinates[i] = val;
     }
 
@@ -34,7 +34,7 @@ public class Point implements Iterable<Long>, Framable, Serializable {
         return coordinates.length;
     }
 
-    public long distance2to(Point p) {
+    public long distance2to(final Point p) {
         return subtract(p).sqr();
     }
 
@@ -42,16 +42,16 @@ public class Point implements Iterable<Long>, Framable, Serializable {
         return multiply(this);
     }
 
-    public Point min(Point other) {
-        Point min = new Point(dim());
+    public Point min(final Point other) {
+        final Point min = new Point(dim());
         for (int i = 0; i < dim(); ++i) {
             min.set(i, Math.min(get(i), other.get(i)));
         }
         return min;
     }
 
-    public Point max(Point other) {
-        Point max = new Point(dim());
+    public Point max(final Point other) {
+        final Point max = new Point(dim());
         for (int i = 0; i < dim(); ++i) {
             max.set(i, Math.max(get(i), other.get(i)));
         }
@@ -80,7 +80,7 @@ public class Point implements Iterable<Long>, Framable, Serializable {
         return p;
     }
 
-    public Point add(Point p) throws IllegalArgumentException {
+    public Point add(final Point p) throws IllegalArgumentException {
         if (dim() != p.dim()) {
             throw new IllegalArgumentException("Dimensions of points must be equal");
         }
@@ -96,11 +96,11 @@ public class Point implements Iterable<Long>, Framable, Serializable {
         return add(new Point(dim()).fill(shift));
     }
 
-    public Point add(long... p) {
+    public Point add(final long... p) {
         return add(new Point(p));
     }
 
-    public Point subtract(Point p) {
+    public Point subtract(final Point p) {
         return add(p.multiply(-1));
     }
 
@@ -120,7 +120,7 @@ public class Point implements Iterable<Long>, Framable, Serializable {
         return mult;
     }
 
-    public long multiply(Point p) throws IllegalArgumentException {
+    public long multiply(final Point p) throws IllegalArgumentException {
         if (dim() != p.dim()) {
             throw new IllegalArgumentException("Dimensions of points must be equal");
         }
@@ -157,24 +157,12 @@ public class Point implements Iterable<Long>, Framable, Serializable {
     }
 
     @Override
-    public Iterator iterator() {
+    public Iterator<Long> iterator() {
         return Longs.asList(coordinates).iterator();
     }
 
     @Override
     public Rectangle getFrameRectangle() {
         return new Rectangle(this);
-    }
-
-    @Override
-    public Object clone() {
-        Point p;
-        try {
-            p = (Point) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new InternalError(e.toString());
-        }
-        p.coordinates = coordinates.clone();
-        return p;
     }
 }

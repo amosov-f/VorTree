@@ -4,8 +4,9 @@ import ru.spbu.astro.model.Point;
 
 import java.util.*;
 
-public class MapPointDepot implements PointDepot {
-    private HashMap<Integer, Point> id2point = new HashMap();
+public final class MapPointDepot implements PointDepot {
+
+    private final Map<Integer, Point> id2point = new HashMap<>();
     private int maxId = -1;
 
     @Override
@@ -14,25 +15,25 @@ public class MapPointDepot implements PointDepot {
     }
 
     @Override
-    public HashMap<Integer, Point> get(Iterable<Integer> ids) {
-        HashMap<Integer, Point> id2point = new HashMap();
+    public Map<Integer, Point> get(final Iterable<Integer> ids) {
+        final Map<Integer, Point> id2point = new HashMap<>();
         for (int id : ids) {
             id2point.put(id, get(id));
         }
-        return null;
+        return id2point;
     }
 
     @Override
-    public int add(Point p) {
+    public int add(final Point p) {
         id2point.put(maxId + 1, p);
         maxId++;
         return maxId;
     }
 
     @Override
-    public ArrayList<Integer> add(Iterable<Point> points) {
-        ArrayList<Integer> ids = new ArrayList();
-        for (Point p : points) {
+    public List<Integer> add(final Iterable<Point> points) {
+        final List<Integer> ids = new ArrayList<>();
+        for (final Point p : points) {
             ids.add(add(p));
         }
         return ids;
@@ -43,4 +44,5 @@ public class MapPointDepot implements PointDepot {
         id2point.clear();
         maxId = -1;
     }
+
 }

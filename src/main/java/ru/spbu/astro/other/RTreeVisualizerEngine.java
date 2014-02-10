@@ -1,4 +1,4 @@
-package ru.spbu.astro;
+package ru.spbu.astro.other;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
