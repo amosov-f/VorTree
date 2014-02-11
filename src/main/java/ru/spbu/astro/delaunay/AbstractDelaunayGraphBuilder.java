@@ -30,16 +30,16 @@ public abstract class AbstractDelaunayGraphBuilder {
     }
 
 
-    public abstract class AbstractDelaunayGraph extends Triangulation implements Framable {
+    public class AbstractDelaunayGraph extends Triangulation implements Framable {
 
-        public AbstractDelaunayGraph(final Collection<Integer> pointIds) {
+        protected AbstractDelaunayGraph(final Collection<Integer> pointIds) {
             addVertices(pointIds);
             if (pointIds.size() <= dim()) {
                 addGraph(new Simplex(pointIds).toGraph());
             }
         }
 
-        public AbstractDelaunayGraph(final AbstractDelaunayGraph g) {
+        protected AbstractDelaunayGraph(final AbstractDelaunayGraph g) {
             super(g);
         }
 

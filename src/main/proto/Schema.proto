@@ -1,9 +1,39 @@
 package ru.spbu.astro;
 
-message msg{
-  message RTreeMessage{
+message PointMessage {
+    repeated int64 coordinates = 1;
+}
 
-  }
-  repeated msg sons = 1;
-  optional RTreeMessage rTree = 2;
+message RectangleMessage {
+    required PointMessage minVertex = 1;
+    required PointMessage maxVertex = 2;
+}
+
+message SimplexMessage {
+    repeated int32 vertices = 1;
+}
+
+message NeighborsEntryMessage {
+    required int32 vertex = 1;
+    repeated int32 neighbors = 2;
+}
+
+message Side2SimplexesEntryMessage {
+    required SimplexMessage side = 1;
+    repeated SimplexMessage simplexes = 2;
+}
+
+message VorTreeMessage {
+    repeated NeighborsEntryMessage neighbors = 1;
+    repeated SimplexMessage simplexes = 2;
+    repeated int32 borderVerices = 3;
+    repeated Side2SimplexesEntryMessage side2simplexes = 4;
+    optional RTreeMessage rTree = 5;
+
+    message RTreeMessage {
+        required RectangleMessage cover = 1;
+        repeated int32 pointIds = 2;
+
+        repeated RTreeMessage sons = 3;
+    }
 }
