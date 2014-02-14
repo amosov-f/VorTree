@@ -1,5 +1,6 @@
 package ru.spbu.astro.delaunay;
 
+import ru.spbu.astro.Message;
 import ru.spbu.astro.model.Graph;
 import ru.spbu.astro.model.Point;
 

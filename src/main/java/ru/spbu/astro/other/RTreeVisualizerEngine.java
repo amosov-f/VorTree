@@ -11,6 +11,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 public class RTreeVisualizerEngine {
     private static int POINTS_COUNT = 100;
 
@@ -34,4 +35,5 @@ public class RTreeVisualizerEngine {
         window.getContentPane().add(component);
         window.setVisible(true);
     }
+
 }

@@ -1,6 +1,7 @@
 package ru.spbu.astro.delaunay;
 
 import com.google.common.collect.Iterables;
+import ru.spbu.astro.Message;
 import ru.spbu.astro.graphics.Framable;
 import ru.spbu.astro.model.*;
 

@@ -8,6 +8,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
+@Deprecated
 public class MetricBorderViewEngine extends ClickableView {
 
     Point p1;

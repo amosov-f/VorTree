@@ -1,6 +1,7 @@
 package ru.spbu.astro.model;
 
 import com.google.common.collect.Iterables;
+import ru.spbu.astro.Message;
 
 import java.io.Serializable;
 import java.util.*;

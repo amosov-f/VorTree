@@ -13,6 +13,7 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.json.JSONObject;
+import ru.spbu.astro.Message;
 import ru.spbu.astro.model.Graph;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.search.mapreduce.DelaunayMapper;
@@ -82,7 +83,6 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
 
             final Collection<List<Integer>> cells = pivotId2pointIds.values();
 
-
             List<AbstractVorTree> sons = new ArrayList<>();
             try {
                 sons = processMapReduce(cells);
@@ -134,9 +134,11 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
             ++fileNumber;
             int currentFileNumber = fileNumber;
 
+            PrintWriter fout = new PrintWriter(new FileOutputStream("input/" + currentFileNumber));
             for (final List<Integer> cell : cells) {
-                FileUtils.writeStringToFile(new File("input/" + currentFileNumber), Joiner.on(' ').join(cell) + "\n", true);
+                fout.println(Joiner.on(' ').join(cell));
             }
+            fout.flush();
 
             final Configuration conf = new Configuration();
 

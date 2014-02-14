@@ -1,6 +1,7 @@
 package ru.spbu.astro.model;
 
 import com.google.common.primitives.Longs;
+import ru.spbu.astro.Message;
 import ru.spbu.astro.graphics.Framable;
 
 import java.io.Serializable;

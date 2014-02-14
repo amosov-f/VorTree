@@ -1,5 +1,6 @@
 package ru.spbu.astro.search;
 
+import ru.spbu.astro.Message;
 import ru.spbu.astro.delaunay.AbstractDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.NativeDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.WalkableDelaunayGraphBuilder;

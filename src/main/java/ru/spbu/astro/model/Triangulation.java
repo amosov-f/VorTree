@@ -1,5 +1,7 @@
 package ru.spbu.astro.model;
 
+import ru.spbu.astro.Message;
+
 import java.util.*;
 
 public class Triangulation extends Graph {
