@@ -1,7 +1,6 @@
 package ru.spbu.astro.model;
 
 import com.google.common.primitives.Longs;
-import ru.spbu.astro.Message;
 import ru.spbu.astro.graphics.Framable;
 
 import java.io.Serializable;
@@ -184,21 +183,13 @@ public final class Point implements Iterable<Long>, Framable, Serializable {
         return new Rectangle(this);
     }
 
-    public String[] toStrings() {
-        String[] s = new String[coordinates.length];
-        for (int i = 0; i < s.length; ++i) {
-            s[i] = String.valueOf(coordinates[i]);
-        }
-        return s;
-    }
-
-    public Message.PointMessage toMessage() {
-        final Message.PointMessage.Builder builder = Message.PointMessage.newBuilder();
+    public Message.Point toMessage() {
+        final Message.Point.Builder builder = Message.Point.newBuilder();
         builder.addAllCoordinates(Longs.asList(coordinates));
         return builder.build();
     }
 
-    public static Point fromMessage(final Message.PointMessage message) {
+    public static Point fromMessage(final Message.Point message) {
         return new Point(message.getCoordinatesList());
     }
 

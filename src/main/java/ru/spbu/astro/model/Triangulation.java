@@ -1,12 +1,10 @@
 package ru.spbu.astro.model;
 
-import ru.spbu.astro.Message;
-
 import java.util.*;
 
 public class Triangulation extends Graph {
 
-    protected final Set<Simplex> simplexes;
+    private final Set<Simplex> simplexes;
 
     protected Triangulation() {
         simplexes = new HashSet<>();
@@ -17,12 +15,16 @@ public class Triangulation extends Graph {
         simplexes = new HashSet<>(t.simplexes);
     }
 
-    protected Triangulation(final Map<Integer, Set<Integer>> neighbors, final Set<Simplex> simplexes) {
-        super(neighbors);
-        this.simplexes = new HashSet<>(simplexes);
+    protected Triangulation(final Message.Triangulation message) {
+        super(message.getGraph());
+
+        simplexes = new HashSet<>();
+        for (Message.Simplex simplex : message.getSimplexesList()) {
+            simplexes.add(new Simplex(simplex));
+        }
     }
 
-    public Collection<Integer> getBorderVertices() {
+    public Set<Integer> getBorderVertices() {
         if (simplexes.isEmpty()) {
             return getVertices();
         }
@@ -74,6 +76,15 @@ public class Triangulation extends Graph {
         }
     }
 
+    public Message.Triangulation toTriangulationMessage() {
+        final Message.Triangulation.Builder builder = Message.Triangulation.newBuilder();
+        builder.setGraph(super.toMessage());
+        for (final Simplex s : getSimplexes()) {
+            builder.addSimplexes(s.toMessage());
+        }
+        return builder.build();
+    }
+
     public static final class Simplex implements Iterable<Integer> {
 
         private final List<Integer> vertices;
@@ -81,6 +92,10 @@ public class Triangulation extends Graph {
         public Simplex(final Collection<Integer> vertices) {
             this.vertices = new ArrayList<>(vertices);
             Collections.sort(this.vertices);
+        }
+
+        public Simplex(final Message.Simplex message) {
+            this(message.getVerticesList());
         }
 
         public List<Integer> getVertices() {
@@ -138,14 +153,10 @@ public class Triangulation extends Graph {
             return vertices.iterator();
         }
 
-        public Message.SimplexMessage toMessage() {
-            final Message.SimplexMessage.Builder builder = Message.SimplexMessage.newBuilder();
+        public Message.Simplex toMessage() {
+            final Message.Simplex.Builder builder = Message.Simplex.newBuilder();
             builder.addAllVertices(vertices);
             return builder.build();
-        }
-
-        public static Simplex fromMessage(final Message.SimplexMessage message) {
-            return new Simplex(message.getVerticesList());
         }
 
     }

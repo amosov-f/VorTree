@@ -17,39 +17,29 @@ public abstract class WalkableDelaunayGraphBuilder extends AbstractDelaunayGraph
 
     public class WalkableDelaunayGraph extends AbstractDelaunayGraph {
 
-        protected final List<Integer> borderVertices;
-        public final Map<Simplex, Set<Simplex>> side2simplexes;
-
-        protected WalkableDelaunayGraph() {
-            borderVertices = new ArrayList<>();
-            side2simplexes = new HashMap<>();
-        }
+        private final Map<Simplex, Set<Simplex>> side2simplexes;
 
         protected WalkableDelaunayGraph(final Collection<Integer> pointIds) {
             super(pointIds);
-            borderVertices = new ArrayList<>();
             side2simplexes = new HashMap<>();
-
-            if (pointIds.size() <= dim()) {
-                borderVertices.addAll(pointIds);
-            }
         }
 
         protected WalkableDelaunayGraph(final WalkableDelaunayGraph g) {
             super(g);
-            borderVertices = new ArrayList<>(g.borderVertices);
             side2simplexes = new HashMap<>(g.side2simplexes);
         }
 
-        protected WalkableDelaunayGraph(
-                final Map<Integer, Set<Integer>> neighbors,
-                final Set<Simplex> simplexes,
-                final List<Integer> borderVertices,
-                final Map<Simplex, Set<Simplex>> side2simplexes
-        ) {
-            super(neighbors, simplexes);
-            this.borderVertices = new ArrayList<>(borderVertices);
-            this.side2simplexes = new HashMap<>(side2simplexes);
+        protected WalkableDelaunayGraph(final Message.WalkableDelaunayGraph message) {
+            super(message.getAbstractDelaunayGraph());
+
+            side2simplexes = new HashMap<>();
+            for (Message.WalkableDelaunayGraph.Side2SimplexesEntry side2simplexesEntryMessage : message.getSide2SimplexesList()) {
+                Set<Simplex> simplexSet = new HashSet<>();
+                for (Message.Simplex simplexMessage : side2simplexesEntryMessage.getSimplexesList()) {
+                    simplexSet.add(new Simplex(simplexMessage));
+                }
+                side2simplexes.put(new Simplex(side2simplexesEntryMessage.getSide()), simplexSet);
+            }
         }
 
         @Override
@@ -128,8 +118,34 @@ public abstract class WalkableDelaunayGraphBuilder extends AbstractDelaunayGraph
         }
 
         @Override
-        public Collection<Integer> getBorderVertices() {
+        public Set<Integer> getBorderVertices() {
+            if (getSimplexes().isEmpty()) {
+                return getVertices();
+            }
+            final Set<Integer> borderVertices = new HashSet<>();
+            for (final Simplex side : side2simplexes.keySet()) {
+                if (side2simplexes.get(side).size() == 1) {
+                    borderVertices.addAll(side.getVertices());
+                }
+            }
             return borderVertices;
+        }
+
+        public Message.WalkableDelaunayGraph toWalkableDelaunayGraphMessage() {
+            final Message.WalkableDelaunayGraph.Builder builder = Message.WalkableDelaunayGraph.newBuilder();
+            builder.setAbstractDelaunayGraph(super.toAbstractDelaunayGraphMessage());
+
+            for (final Simplex side : side2simplexes.keySet()) {
+                final Message.WalkableDelaunayGraph.Side2SimplexesEntry.Builder side2simplexesEntryBuilder
+                        = Message.WalkableDelaunayGraph.Side2SimplexesEntry.newBuilder();
+                side2simplexesEntryBuilder.setSide(side.toMessage());
+                for (final Simplex s : side2simplexes.get(side)) {
+                    side2simplexesEntryBuilder.addSimplexes(s.toMessage());
+                }
+                builder.addSide2Simplexes(side2simplexesEntryBuilder);
+            }
+
+            return builder.build();
         }
 
     }

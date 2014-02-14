@@ -17,7 +17,7 @@ public final class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuild
     }
 
     @Override
-    public AbstractDelaunayGraph build(final Collection<Integer> pointIds) {
+    public NativeDelaunayGraph build(final Collection<Integer> pointIds) {
         return new NativeDelaunayGraph(pointIds);
     }
 

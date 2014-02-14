@@ -7,18 +7,21 @@ import java.util.*;
 
 public class Graph implements Iterable<Graph.Edge>, Cloneable, Serializable {
 
-    protected final Map<Integer, Set<Integer>> neighbors;
+    private final Map<Integer, Set<Integer>> neighbors;
 
     public Graph() {
         neighbors = new HashMap<>();
     }
 
     public Graph(Graph g) {
-        this(g.neighbors);
+        neighbors = new HashMap<>(g.neighbors);
     }
 
-    protected Graph(final Map<Integer, Set<Integer>> neighbors) {
-        this.neighbors = new HashMap<>(neighbors);
+    public Graph(final Message.Graph message) {
+        neighbors = new HashMap<>();
+        for (final Message.Graph.NeighborsEntry neighborsEntryMessage : message.getNeighborsList()) {
+            neighbors.put(neighborsEntryMessage.getVertex(), new HashSet<>(neighborsEntryMessage.getNeighborsList()));
+        }
     }
 
     public void addVertex(int u) {
@@ -130,6 +133,17 @@ public class Graph implements Iterable<Graph.Edge>, Cloneable, Serializable {
             str += e.toString() + "\n";
         }
         return str + "\n";
+    }
+
+    public Message.Graph toMessage() {
+        final Message.Graph.Builder builder = Message.Graph.newBuilder();
+        for (int u : getVertices()) {
+            final Message.Graph.NeighborsEntry.Builder neighborsEntryBuilder = Message.Graph.NeighborsEntry.newBuilder();
+            neighborsEntryBuilder.setVertex(u);
+            neighborsEntryBuilder.addAllNeighbors(getNeighbors(u));
+            builder.addNeighbors(neighborsEntryBuilder);
+        }
+        return builder.build();
     }
 
     protected final static class Edge {

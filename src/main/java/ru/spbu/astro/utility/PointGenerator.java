@@ -8,14 +8,6 @@ import java.util.*;
 
 public final class PointGenerator {
 
-    public static Map<Integer, Point> toMap(final List<Point> points) {
-        final Map<Integer, Point> id2point = new HashMap<>();
-        for (int i = 0; i < points.size(); ++i) {
-            id2point.put(i, points.get(i));
-        }
-        return id2point;
-    }
-
     public static List<Point> nextUniforms(int n, final Rectangle rect) {
         final Set<Point> points = new HashSet<>();
         while (points.size() < n) {

@@ -1,6 +1,5 @@
 package ru.spbu.astro.search;
 
-import ru.spbu.astro.Message;
 import ru.spbu.astro.delaunay.AbstractDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.NativeDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.WalkableDelaunayGraphBuilder;
@@ -12,28 +11,35 @@ import java.util.*;
 
 public abstract class AbstractVorTreeBuilder extends WalkableDelaunayGraphBuilder {
     protected final AbstractDelaunayGraphBuilder binder = new NativeDelaunayGraphBuilder(id2point);
-    protected final int division;
 
-    protected AbstractVorTreeBuilder(final Collection<Point> points, int division) {
+    protected AbstractVorTreeBuilder(final Collection<Point> points) {
         super(points);
-        this.division = division;
     }
 
-    protected AbstractVorTreeBuilder(final Map<Integer, Point> id2point, int division) {
+    protected AbstractVorTreeBuilder(final Map<Integer, Point> id2point) {
         super(id2point);
-        this.division = division;
+    }
+
+    public abstract AbstractVorTree build(final Collection<Integer> pointIds, int division);
+
+    @Override
+    public AbstractVorTree build(final Collection<Integer> pointIds) {
+        return build(pointIds, 2);
+    }
+
+    public AbstractVorTree build(int division) {
+        return build(id2point.keySet(), division);
+    }
+
+    public AbstractVorTree build(final Message.AbstractVorTree message) {
+        return new AbstractVorTree(message);
     }
 
     public class AbstractVorTree extends WalkableDelaunayGraph implements Index {
-        protected RTree rTree;
-
-        protected AbstractVorTree() {
-//            rTree = new RTree();
-        }
+        private final RTree rTree;
 
         protected AbstractVorTree(final Collection<Integer> pointIds) {
             super(pointIds);
-
             rTree = new RTree(getFrameRectangle(), pointIds);
         }
 
@@ -42,15 +48,9 @@ public abstract class AbstractVorTreeBuilder extends WalkableDelaunayGraphBuilde
             rTree = new RTree(t.rTree);
         }
 
-        protected AbstractVorTree(
-                final Map<Integer, Set<Integer>> neighbors,
-                final Set<Simplex> simplexes,
-                final List<Integer> borderVertices,
-                final Map<Simplex, Set<Simplex>> side2simplexes,
-                final RTree rTree
-        ) {
-            super(neighbors, simplexes, borderVertices, side2simplexes);
-            this.rTree = new RTree(rTree);
+        protected AbstractVorTree(final Message.AbstractVorTree message) {
+            super(message.getWalkableDelaunayGraph());
+            rTree = new RTree(message.getRTree());
         }
 
         @Override
@@ -72,6 +72,17 @@ public abstract class AbstractVorTreeBuilder extends WalkableDelaunayGraphBuilde
             return rTree.getNearestNeighbor(p);
         }
 
+        public void addSon(final AbstractVorTree t) {
+            rTree.sons.add(t.rTree);
+        }
+
+        public Message.AbstractVorTree toAbstractVorTreeMessage() {
+            final Message.AbstractVorTree.Builder builder = Message.AbstractVorTree.newBuilder();
+            builder.setWalkableDelaunayGraph(super.toWalkableDelaunayGraphMessage());
+            builder.setRTree(rTree.toMessage());
+            return builder.build();
+        }
+
         protected class RTree implements Index {
             private final Rectangle cover;
             private final Set<Integer> pointIds;
@@ -80,7 +91,6 @@ public abstract class AbstractVorTreeBuilder extends WalkableDelaunayGraphBuilde
 
             public RTree() {
                 this(new Rectangle(), new HashSet<Integer>());
-                //this(new Rectangle(id2point.get(getVertices()).values()), getVertices(), new ArrayList<RTree>());
             }
 
             public RTree(final RTree t) {
@@ -97,12 +107,12 @@ public abstract class AbstractVorTreeBuilder extends WalkableDelaunayGraphBuilde
                 this.sons = new ArrayList<>(sons);
             }
 
-            public RTree(Message.VorTreeMessage.RTreeMessage message) {
+            public RTree(Message.AbstractVorTree.RTree message) {
                 cover = Rectangle.fromMessage(message.getCover());
                 pointIds = new HashSet<>(message.getPointIdsList());
 
                 sons = new ArrayList<>();
-                for (final Message.VorTreeMessage.RTreeMessage sonMessage : message.getSonsList()) {
+                for (final Message.AbstractVorTree.RTree sonMessage : message.getSonsList()) {
                     sons.add(new RTree(sonMessage));
                 }
             }
@@ -139,8 +149,8 @@ public abstract class AbstractVorTreeBuilder extends WalkableDelaunayGraphBuilde
                 return -1;
             }
 
-            public Message.VorTreeMessage.RTreeMessage toMessage() {
-                final Message.VorTreeMessage.RTreeMessage.Builder builder = Message.VorTreeMessage.RTreeMessage.newBuilder();
+            public Message.AbstractVorTree.RTree toMessage() {
+                final Message.AbstractVorTree.RTree.Builder builder = Message.AbstractVorTree.RTree.newBuilder();
                 builder.setCover(cover.toMessage());
                 builder.addAllPointIds(pointIds);
                 for (RTree son : sons) {

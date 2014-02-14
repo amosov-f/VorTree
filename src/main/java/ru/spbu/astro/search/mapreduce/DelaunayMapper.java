@@ -1,17 +1,24 @@
 package ru.spbu.astro.search.mapreduce;
 
-import org.apache.hadoop.io.*;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import ru.spbu.astro.model.Point;
+import ru.spbu.astro.search.AbstractVorTreeBuilder;
+import ru.spbu.astro.search.MapReduceVorTreeBuilder;
 import ru.spbu.astro.search.VorTreeBuilder;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DelaunayMapper extends Mapper<LongWritable, Text, IntWritable, BytesWritable> {
 
@@ -44,10 +51,10 @@ public class DelaunayMapper extends Mapper<LongWritable, Text, IntWritable, Byte
         }
         System.out.println("map: " + pointIds);
 
-        VorTreeBuilder builder = new VorTreeBuilder(id2point, 2);
-        VorTreeBuilder.VorTree t = (VorTreeBuilder.VorTree) builder.build(pointIds);
+        AbstractVorTreeBuilder builder = new MapReduceVorTreeBuilder(id2point);
+        AbstractVorTreeBuilder.AbstractVorTree t = builder.build(pointIds, 2);
 
-        byte[] b = t.toMessage().toByteArray();
+        byte[] b = t.toAbstractVorTreeMessage().toByteArray();
 
         context.write(new IntWritable(b.length), new BytesWritable(b));
     }

@@ -17,7 +17,7 @@ public final class VisadDelaunayGraphBuilder extends AbstractDelaunayGraphBuilde
     }
 
     @Override
-    public AbstractDelaunayGraph build(final Collection<Integer> pointIds) {
+    public VisadDelaunayGraph build(final Collection<Integer> pointIds) {
         return new VisadDelaunayGraph(pointIds);
     }
 

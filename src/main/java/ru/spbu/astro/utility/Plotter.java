@@ -1,10 +1,7 @@
 package ru.spbu.astro.utility;
 
-import com.apple.jobjc.Utils;
-import org.math.plot.plots.BoxPlot2D;
 import org.math.plot.plots.LinePlot;
 import org.math.plot.plots.Plot;
-import org.math.plot.plots.ScatterPlot;
 
 import java.awt.*;
 import java.util.ArrayList;

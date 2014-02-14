@@ -13,7 +13,6 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.json.JSONObject;
-import ru.spbu.astro.Message;
 import ru.spbu.astro.model.Graph;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.search.mapreduce.DelaunayMapper;
@@ -23,26 +22,33 @@ import java.util.*;
 
 public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
 
-    private final VorTreeBuilder vorTreeBuilder;
+    private static int fileNumber = 0;
 
-    public MapReduceVorTreeBuilder(final Collection<Point> points, int division) {
-        super(points, division);
-        vorTreeBuilder = new VorTreeBuilder(id2point, division);
+    public MapReduceVorTreeBuilder(final Collection<Point> points) {
+        super(points);
+
+        try {
+            FileUtils.deleteDirectory(new File("input"));
+            FileUtils.deleteDirectory(new File("output"));
+            new File("input").mkdir();
+            new File("output").mkdir();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public MapReduceVorTreeBuilder(final Map<Integer, Point> id2point, int division) {
-        super(id2point, division);
-        vorTreeBuilder = new VorTreeBuilder(id2point, division);
+    public MapReduceVorTreeBuilder(final Map<Integer, Point> id2point) {
+        super(id2point);
     }
 
     @Override
-    public AbstractDelaunayGraph build(Collection<Integer> pointIds) {
-        return new MapReduceVorTree(pointIds);
+    public MapReduceVorTree build(final Collection<Integer> pointIds, int division) {
+        return new MapReduceVorTree(pointIds, division);
     }
 
     public class MapReduceVorTree extends AbstractVorTree {
 
-        public MapReduceVorTree(Collection<Integer> pointIds) {
+        public MapReduceVorTree(final Collection<Integer> pointIds, int division) {
             super(pointIds);
 
             if (pointIds.size() <= dim()) {
@@ -55,7 +61,7 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
                 Collections.shuffle(pointIdList);
                 final List<Integer> pivotIds = pointIdList.subList(0, Math.min(division, pointIdList.size()));
 
-                final VorTreeBuilder.VorTree pivotVorTree = (VorTreeBuilder.VorTree) vorTreeBuilder.build(pivotIds);
+                final AbstractVorTree pivotVorTree = build(pivotIds, 2);
                 for (int pointId : pointIds) {
                     pointId2pivotId.put(pointId, pivotVorTree.getNearestNeighbor(id2point.get(pointId)));
                 }
@@ -77,7 +83,7 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
             final Collection<List<Integer>> cells = pivotId2pointIds.values();
 
 
-            List<VorTreeBuilder.VorTree> sons = new ArrayList<>();
+            List<AbstractVorTree> sons = new ArrayList<>();
             try {
                 sons = processMapReduce(cells);
             } catch (Exception e) {
@@ -86,7 +92,7 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
 
             final Set<Integer> bindPointIds = new HashSet<>();
             final Graph removedGraph = new Graph();
-            for (final VorTreeBuilder.VorTree t : sons) {
+            for (final AbstractVorTree t : sons) {
                 bindPointIds.addAll(t.getBorderVertices());
                 removedGraph.addGraph(removeCreepSimplexes(t));
                 addTriangulation(t);
@@ -99,8 +105,6 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
             } else {
                 bindDelanayGraph = binder.build(bindPointIds);
             }
-
-            borderVertices.addAll(bindDelanayGraph.getBorderVertices());
 
             final Graph newEdges = new Graph();
             for (final Edge edge : bindDelanayGraph) {
@@ -126,12 +130,13 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
             }
         }
 
-        public List<VorTreeBuilder.VorTree> processMapReduce(final Collection<List<Integer>> cells) throws Exception {
-            final PrintWriter fout = new PrintWriter(new FileOutputStream("input.txt"));
+        public List<AbstractVorTree> processMapReduce(final Collection<List<Integer>> cells) throws Exception {
+            ++fileNumber;
+            int currentFileNumber = fileNumber;
+
             for (final List<Integer> cell : cells) {
-                fout.println(Joiner.on(' ').join(cell));
+                FileUtils.writeStringToFile(new File("input/" + currentFileNumber), Joiner.on(' ').join(cell) + "\n", true);
             }
-            fout.flush();
 
             final Configuration conf = new Configuration();
 
@@ -151,24 +156,28 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
             job.setOutputKeyClass(IntWritable.class);
             job.setOutputValueClass(BytesWritable.class);
 
-            FileUtils.deleteDirectory(new File("output"));
-            FileInputFormat.addInputPath(job, new Path("input.txt"));
-            FileOutputFormat.setOutputPath(job, new Path("output"));
+            FileInputFormat.addInputPath(job, new Path("input/" + currentFileNumber));
+            FileOutputFormat.setOutputPath(job, new Path("output/" + currentFileNumber));
 
             job.waitForCompletion(true);
 
-            final SequenceFile.Reader reader = new SequenceFile.Reader(FileSystem.get(conf), new Path("output/part-m-00000"), conf);
+            final SequenceFile.Reader reader = new SequenceFile.Reader(
+                    FileSystem.get(conf),
+                    new Path("output/" + currentFileNumber + "/part-m-00000"),
+                    conf
+            );
+
             final IntWritable key = new IntWritable();
             final BytesWritable value = (BytesWritable) reader.getValueClass().newInstance();
 
-            final List<VorTreeBuilder.VorTree> sons = new ArrayList<>();
+            final List<AbstractVorTree> sons = new ArrayList<>();
             while (reader.next(key, value)) {
                 byte[] b = Arrays.copyOf(value.getBytes(), key.get());
-                final Message.VorTreeMessage message = Message.VorTreeMessage.parseFrom(b);
+                final Message.AbstractVorTree message = Message.AbstractVorTree.parseFrom(b);
 
-                final VorTreeBuilder.VorTree t = vorTreeBuilder.fromMessage(message);
+                final AbstractVorTree t = build(message);
                 sons.add(t);
-                rTree.sons.add(t.rTree);
+                addSon(t);
             }
 
             return sons;

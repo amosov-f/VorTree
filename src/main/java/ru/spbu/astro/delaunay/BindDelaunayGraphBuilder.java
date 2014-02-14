@@ -25,7 +25,7 @@ public final class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder
     }
 
     @Override
-    public AbstractDelaunayGraph build(Collection<Integer> pointIds) {
+    public BindDelaunayGraph build(Collection<Integer> pointIds) {
         return new BindDelaunayGraph(pointIds);
     }
 
@@ -109,8 +109,6 @@ public final class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder
             } else {
                 bindDelanayGraph = nativeDelaunayGraphBuilder.build(bindPointIds);
             }
-
-            borderVertices.addAll(bindDelanayGraph.getBorderVertices());
 
             Graph newEdges = new Graph();
             for (Edge edge : bindDelanayGraph) {

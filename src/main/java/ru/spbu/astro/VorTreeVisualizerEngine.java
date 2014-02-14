@@ -29,10 +29,10 @@ public class VorTreeVisualizerEngine {
 
         @Override
         public void build() {
-            List<Point> points = PointGenerator.nextUniforms(1000, 1000 * getWidth(), 1000 * getHeight());
+            List<Point> points = PointGenerator.nextUniforms(20, 1000 * getWidth(), 1000 * getHeight());
 
-            AbstractDelaunayGraphBuilder builder1 = new VisadDelaunayGraphBuilder(PointGenerator.toMap(points));
-            AbstractDelaunayGraphBuilder builder2 = new MapReduceVorTreeBuilder(PointGenerator.toMap(points), 2);
+            AbstractDelaunayGraphBuilder builder1 = new VisadDelaunayGraphBuilder(points);
+            MapReduceVorTreeBuilder builder2 = new MapReduceVorTreeBuilder(points);
 
             long t1 = System.currentTimeMillis();
 
@@ -40,7 +40,7 @@ public class VorTreeVisualizerEngine {
 
             long t2 = System.currentTimeMillis();
 
-            AbstractDelaunayGraphBuilder.AbstractDelaunayGraph graph2 = builder2.build();
+            AbstractDelaunayGraphBuilder.AbstractDelaunayGraph graph2 = builder2.build(2);
 
             long t3 = System.currentTimeMillis();
 
@@ -49,6 +49,7 @@ public class VorTreeVisualizerEngine {
 
             add(graph2);
         }
+
     }
 
     public static void main(String[] args) {
@@ -64,4 +65,5 @@ public class VorTreeVisualizerEngine {
             new FrameView(plot);
         }
     }
+
 }

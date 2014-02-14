@@ -1,6 +1,5 @@
 package ru.spbu.astro.search;
 
-import ru.spbu.astro.Message;
 import ru.spbu.astro.model.Graph;
 import ru.spbu.astro.model.Point;
 
@@ -8,52 +7,22 @@ import java.util.*;
 
 public final class VorTreeBuilder extends AbstractVorTreeBuilder {
 
-    public VorTreeBuilder(final Collection<Point> points, int division) {
-        super(points, division);
+    public VorTreeBuilder(final Collection<Point> points) {
+        super(points);
     }
 
-    public VorTreeBuilder(final Map<Integer, Point> points, int division) {
-        super(points, division);
+    public VorTreeBuilder(final Map<Integer, Point> points) {
+        super(points);
     }
 
     @Override
-    public AbstractDelaunayGraph build(final Collection<Integer> pointIds) {
-        return new VorTree(pointIds);
-    }
-
-    public VorTree fromMessage(final Message.VorTreeMessage vorTreeMessage) {
-        return new VorTree(vorTreeMessage);
+    public VorTree build(final Collection<Integer> pointIds, int division) {
+        return new VorTree(pointIds, division);
     }
 
     public class VorTree extends AbstractVorTree {
 
-        public VorTree(final Message.VorTreeMessage vorTreeMessage) {
-            //neighbors = new HashMap<>();
-            for (final Message.NeighborsEntryMessage message : vorTreeMessage.getNeighborsList()) {
-                neighbors.put(message.getVertex(), new HashSet<>(message.getNeighborsList()));
-            }
-
-            //simplexes = new HashSet<>();
-            for (final Message.SimplexMessage message : vorTreeMessage.getSimplexesList()) {
-                simplexes.add(Simplex.fromMessage(message));
-            }
-
-            borderVertices.addAll(vorTreeMessage.getBorderVericesList());
-
-            //side2simplexes = new HashMap<>();
-            for (Message.Side2SimplexesEntryMessage entryMessage : vorTreeMessage.getSide2SimplexesList()) {
-                Set<Simplex> simplexSet = new HashSet<>();
-                for (Message.SimplexMessage message : entryMessage.getSimplexesList()) {
-                    simplexSet.add(Simplex.fromMessage(message));
-                }
-                side2simplexes.put(Simplex.fromMessage(entryMessage.getSide()), simplexSet);
-            }
-
-            rTree = new RTree(vorTreeMessage.getRTree());
-        }
-
-        
-        public VorTree(final Collection<Integer> pointIds) {
+        public VorTree(final Collection<Integer> pointIds, int division) {
             super(pointIds);
 
             if (pointIds.size() <= dim()) {
@@ -91,7 +60,7 @@ public final class VorTreeBuilder extends AbstractVorTreeBuilder {
             for (final List<Integer> cell : cells) {
                 final VorTree t = (VorTree) build(cell);
                 sons.add(t);
-                rTree.sons.add(t.rTree);
+                addSon(t);
             }
 
             final Set<Integer> bindPointIds = new HashSet<>();
@@ -109,8 +78,6 @@ public final class VorTreeBuilder extends AbstractVorTreeBuilder {
             } else {
                 bindDelanayGraph = binder.build(bindPointIds);
             }
-
-            borderVertices.addAll(bindDelanayGraph.getBorderVertices());
 
             final Graph newEdges = new Graph();
             for (final Edge edge : bindDelanayGraph) {
@@ -136,35 +103,7 @@ public final class VorTreeBuilder extends AbstractVorTreeBuilder {
             }
         }
 
-        public Message.VorTreeMessage toMessage() {
-            final Message.VorTreeMessage.Builder vorTreeMessageBuilder = Message.VorTreeMessage.newBuilder();
 
-            for (int u : getVertices()) {
-                final Message.NeighborsEntryMessage.Builder builder = Message.NeighborsEntryMessage.newBuilder();
-                builder.setVertex(u);
-                builder.addAllNeighbors(getNeighbors(u));
-                vorTreeMessageBuilder.addNeighbors(builder);
-            }
-
-            for (final Simplex s : getSimplexes()) {
-                vorTreeMessageBuilder.addSimplexes(s.toMessage());
-            }
-
-            vorTreeMessageBuilder.addAllBorderVerices(getBorderVertices());
-
-            for (final Simplex side : side2simplexes.keySet()) {
-                final Message.Side2SimplexesEntryMessage.Builder builder = Message.Side2SimplexesEntryMessage.newBuilder();
-                builder.setSide(side.toMessage());
-                for (final Simplex s : side2simplexes.get(side)) {
-                    builder.addSimplexes(s.toMessage());
-                }
-                vorTreeMessageBuilder.addSide2Simplexes(builder);
-            }
-
-            vorTreeMessageBuilder.setRTree(rTree.toMessage());
-
-            return vorTreeMessageBuilder.build();
-        }
 
     }
 
