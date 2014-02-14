@@ -6,15 +6,12 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
-import org.codehaus.jackson.annotate.JsonValue;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONObject;
 import ru.spbu.astro.Message;
 import ru.spbu.astro.model.Graph;
@@ -138,11 +135,11 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
 
             final Configuration conf = new Configuration();
 
-            JSONObject json = new JSONObject();
+            final JSONObject json = new JSONObject();
             json.put("id2point", id2point);
             conf.set("id2point", json.toString());
 
-            Job job = new Job(conf);
+            final Job job = new Job(conf);
 
             job.setJarByClass(MapReduceVorTreeBuilder.class);
             job.setMapperClass(DelaunayMapper.class);
@@ -160,15 +157,14 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
 
             job.waitForCompletion(true);
 
-            SequenceFile.Reader reader = new SequenceFile.Reader(FileSystem.get(conf), new Path("output/part-m-00000"), conf);
-            IntWritable key = new IntWritable();
-            BytesWritable value = (BytesWritable) reader.getValueClass().newInstance();
+            final SequenceFile.Reader reader = new SequenceFile.Reader(FileSystem.get(conf), new Path("output/part-m-00000"), conf);
+            final IntWritable key = new IntWritable();
+            final BytesWritable value = (BytesWritable) reader.getValueClass().newInstance();
 
-            List<VorTreeBuilder.VorTree> sons = new ArrayList<>();
+            final List<VorTreeBuilder.VorTree> sons = new ArrayList<>();
             while (reader.next(key, value)) {
                 byte[] b = Arrays.copyOf(value.getBytes(), key.get());
-
-                Message.VorTreeMessage message = Message.VorTreeMessage.parseFrom(b);
+                final Message.VorTreeMessage message = Message.VorTreeMessage.parseFrom(b);
 
                 final VorTreeBuilder.VorTree t = vorTreeBuilder.fromMessage(message);
                 sons.add(t);

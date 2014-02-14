@@ -1,6 +1,5 @@
 package ru.spbu.astro.model;
 
-import ru.spbu.astro.Message;
 import ru.spbu.astro.graphics.Framable;
 
 import java.util.ArrayList;

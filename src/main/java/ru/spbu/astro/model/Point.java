@@ -1,7 +1,5 @@
 package ru.spbu.astro.model;
 
-import com.google.common.collect.Iterables;
-import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import ru.spbu.astro.Message;
 import ru.spbu.astro.graphics.Framable;
@@ -10,7 +8,6 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 public final class Point implements Iterable<Long>, Framable, Serializable {
     private final long[] coordinates;

@@ -3,7 +3,6 @@ package ru.spbu.astro.search;
 import ru.spbu.astro.Message;
 import ru.spbu.astro.model.Graph;
 import ru.spbu.astro.model.Point;
-import ru.spbu.astro.model.Triangulation;
 
 import java.util.*;
 
