@@ -12,7 +12,7 @@ public interface PointDepot {
 
     Map<Integer, Point> get(final Iterable<Integer> ids);
 
-    int add(Point p);
+    int add(final Point p);
 
     Collection<Integer> add(final Iterable<Point> points);
 

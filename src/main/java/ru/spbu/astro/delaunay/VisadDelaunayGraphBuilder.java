@@ -8,12 +8,12 @@ import java.util.*;
 
 public final class VisadDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
 
-    public VisadDelaunayGraphBuilder(final Iterable<Point> points) {
+    public VisadDelaunayGraphBuilder(final Collection<Point> points) {
         super(points);
     }
 
-    public VisadDelaunayGraphBuilder(final Collection<Integer> pointIds) {
-        super(pointIds);
+    public VisadDelaunayGraphBuilder(final Map<Integer, Point> id2point) {
+        super(id2point);
     }
 
     @Override

@@ -7,8 +7,17 @@ import ru.spbu.astro.model.Rectangle;
 import java.util.*;
 
 public final class PointGenerator {
+
+    public static Map<Integer, Point> toMap(final List<Point> points) {
+        final Map<Integer, Point> id2point = new HashMap<>();
+        for (int i = 0; i < points.size(); ++i) {
+            id2point.put(i, points.get(i));
+        }
+        return id2point;
+    }
+
     public static List<Point> nextUniforms(int n, final Rectangle rect) {
-        Set<Point> points = new HashSet<>();
+        final Set<Point> points = new HashSet<>();
         while (points.size() < n) {
             long[] coordinates = new long[rect.dim()];
             for (int d = 0; d < coordinates.length; ++d) {

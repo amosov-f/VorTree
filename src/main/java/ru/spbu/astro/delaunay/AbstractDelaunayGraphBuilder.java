@@ -1,8 +1,6 @@
 package ru.spbu.astro.delaunay;
 
 import com.google.common.collect.Iterables;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import ru.spbu.astro.db.PointDepot;
 import ru.spbu.astro.graphics.Framable;
 import ru.spbu.astro.model.*;
 
@@ -10,27 +8,41 @@ import java.util.*;
 
 public abstract class AbstractDelaunayGraphBuilder {
 
-    protected final PointDepot id2point =
-            (PointDepot) new ClassPathXmlApplicationContext("application-context.xml").getBean("mapPointDepot");
-    private final Collection<Integer> pointIds;
+    protected final Map<Integer, Point> id2point;
+    private final int dim;
 
-    protected AbstractDelaunayGraphBuilder(final Collection<Integer> pointIds) {
-        this.pointIds = new ArrayList<>(pointIds);
+    protected AbstractDelaunayGraphBuilder(final Collection<Point> points) {
+        final List<Point> pointList = new ArrayList<>(points);
+        id2point = new HashMap<>();
+        for (int i = 0; i < pointList.size(); ++i) {
+            id2point.put(i, pointList.get(i));
+        }
+        dim = pointList.get(0).dim();
     }
 
-    protected AbstractDelaunayGraphBuilder(final Iterable<Point> points) {
-        id2point.clear();
-        pointIds = id2point.add(points);
+    protected AbstractDelaunayGraphBuilder(final Map<Integer, Point> id2point) {
+        this.id2point = id2point;
+        dim = Iterables.get(id2point.values(), 0).dim();
     }
 
     public abstract AbstractDelaunayGraph build(final Collection<Integer> pointIds);
 
     public AbstractDelaunayGraph build() {
-        return build(pointIds);
+        return build(id2point.keySet());
     }
 
+    public List<Point> get(final Iterable<Integer> pointIds) {
+        final List<Point> points = new ArrayList<>();
+        for (int pointId : pointIds) {
+            points.add(id2point.get(pointId));
+        }
+        return points;
+    }
 
     public class AbstractDelaunayGraph extends Triangulation implements Framable {
+
+        protected AbstractDelaunayGraph() {
+        }
 
         protected AbstractDelaunayGraph(final Collection<Integer> pointIds) {
             addVertices(pointIds);
@@ -43,6 +55,10 @@ public abstract class AbstractDelaunayGraphBuilder {
             super(g);
         }
 
+        protected AbstractDelaunayGraph(final Map<Integer, Set<Integer>> neighbors, final Set<Simplex> simplexes) {
+            super(neighbors, simplexes);
+        }
+
         public final boolean contains(int u, final Point p) {
             for (int v : getNeighbors(u)) {
                 if (id2point.get(v).distance2to(p) < id2point.get(u).distance2to(p)) {
@@ -53,7 +69,7 @@ public abstract class AbstractDelaunayGraphBuilder {
         }
 
         public boolean isCreep(final Simplex s) {
-            final Ball b = new Ball(getPoints(s));
+            final Ball b = new Ball(get(s));
             for (final Point p : getPoints()) {
                 if (b.contains(p)) {
                     return true;
@@ -81,7 +97,7 @@ public abstract class AbstractDelaunayGraphBuilder {
         public final List<ru.spbu.astro.model.Simplex> getPointSimplexes() {
             final List<ru.spbu.astro.model.Simplex> simplexes = new ArrayList<>();
             for (Simplex s : getSimplexes()) {
-                simplexes.add(new ru.spbu.astro.model.Simplex(getPoints(s)));
+                simplexes.add(new ru.spbu.astro.model.Simplex(get(s)));
             }
             return simplexes;
         }
@@ -89,7 +105,7 @@ public abstract class AbstractDelaunayGraphBuilder {
         public final List<ru.spbu.astro.model.Simplex> getCreepPointSimplexes(final AbstractDelaunayGraph g) {
             final List<ru.spbu.astro.model.Simplex> creepSimplexes = new ArrayList<>();
             for (Simplex s : getCreepSimplexes(g)) {
-                creepSimplexes.add(new ru.spbu.astro.model.Simplex(g.getPoints(s)));
+                creepSimplexes.add(new ru.spbu.astro.model.Simplex(get(s)));
             }
             return creepSimplexes;
         }
@@ -103,15 +119,11 @@ public abstract class AbstractDelaunayGraphBuilder {
         }
 
         public final Collection<Point> getPoints() {
-            return id2point.get(getVertices()).values();
-        }
-
-        public final Collection<Point> getPoints(final Simplex s) {
-            return id2point.get(s.getVertices()).values();
+            return get(getVertices());
         }
 
         public int dim() {
-            return id2point.get(Iterables.get(pointIds, 0)).dim();
+            return dim;
         }
 
         @Override

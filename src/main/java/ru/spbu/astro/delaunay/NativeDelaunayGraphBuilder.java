@@ -6,14 +6,14 @@ import java.util.*;
 
 public final class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
 
-    public static final Map<Integer, Integer> count = new HashMap<>();
+    public static final Map<Integer, Integer> COUNT = new HashMap<>();
 
-    public NativeDelaunayGraphBuilder(final Iterable<Point> points) {
+    public NativeDelaunayGraphBuilder(final Collection<Point> points) {
         super(points);
     }
 
-    public NativeDelaunayGraphBuilder(final Collection<Integer> pointIds) {
-        super(pointIds);
+    public NativeDelaunayGraphBuilder(final Map<Integer, Point> id2point) {
+        super(id2point);
     }
 
     @Override
@@ -39,10 +39,10 @@ public final class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuild
 
             System.out.println(pointIds.size());
 
-            if (!count.containsKey(pointIds.size())) {
-                count.put(pointIds.size(), 0);
+            if (!COUNT.containsKey(pointIds.size())) {
+                COUNT.put(pointIds.size(), 0);
             }
-            count.put(pointIds.size(), count.get(pointIds.size()) + 1);
+            COUNT.put(pointIds.size(), COUNT.get(pointIds.size()) + 1);
 
             build(new BitSet(pointIds.size()), 0, dim() + 1);
         }

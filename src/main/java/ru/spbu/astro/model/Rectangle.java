@@ -1,6 +1,7 @@
 package ru.spbu.astro.model;
 
 import com.google.common.collect.Iterables;
+import ru.spbu.astro.Message;
 import ru.spbu.astro.graphics.Framable;
 
 import java.util.Arrays;
@@ -101,4 +102,16 @@ public final class Rectangle implements Framable {
     public Rectangle getFrameRectangle() {
         return this;
     }
+
+    public Message.RectangleMessage toMessage() {
+        final Message.RectangleMessage.Builder builder = Message.RectangleMessage.newBuilder();
+        builder.setMinVertex(minVertex.toMessage());
+        builder.setMaxVertex(maxVertex.toMessage());
+        return builder.build();
+    }
+
+    public static Rectangle fromMessage(Message.RectangleMessage message) {
+        return new Rectangle(Point.fromMessage(message.getMinVertex()), Point.fromMessage(message.getMaxVertex()));
+    }
+
 }

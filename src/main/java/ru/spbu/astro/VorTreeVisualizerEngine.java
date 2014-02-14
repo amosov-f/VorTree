@@ -7,6 +7,7 @@ import ru.spbu.astro.delaunay.NativeDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.VisadDelaunayGraphBuilder;
 import ru.spbu.astro.graphics.ClickableView;
 import ru.spbu.astro.model.Point;
+import ru.spbu.astro.search.MapReduceVorTreeBuilder;
 import ru.spbu.astro.search.VorTreeBuilder;
 import ru.spbu.astro.utility.Plotter;
 import ru.spbu.astro.utility.PointGenerator;
@@ -14,6 +15,7 @@ import ru.spbu.astro.utility.PointGenerator;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Collection;
+import java.util.List;
 
 public class VorTreeVisualizerEngine {
 
@@ -27,10 +29,10 @@ public class VorTreeVisualizerEngine {
 
         @Override
         public void build() {
-            Collection<Point> points = PointGenerator.nextUniforms(1000, 1000 * getWidth(), 1000 * getHeight());
+            List<Point> points = PointGenerator.nextUniforms(1000, 1000 * getWidth(), 1000 * getHeight());
 
-            AbstractDelaunayGraphBuilder builder1 = new VisadDelaunayGraphBuilder(points);
-            AbstractDelaunayGraphBuilder builder2 = new VorTreeBuilder(points, 2);
+            AbstractDelaunayGraphBuilder builder1 = new VisadDelaunayGraphBuilder(PointGenerator.toMap(points));
+            AbstractDelaunayGraphBuilder builder2 = new MapReduceVorTreeBuilder(PointGenerator.toMap(points), 2);
 
             long t1 = System.currentTimeMillis();
 
@@ -56,9 +58,9 @@ public class VorTreeVisualizerEngine {
         frame.setSize(component.getSize());
         frame.setVisible(true);
 
-        if (!NativeDelaunayGraphBuilder.count.isEmpty()) {
+        if (!NativeDelaunayGraphBuilder.COUNT.isEmpty()) {
             Plot2DPanel plot = new Plot2DPanel();
-            plot.addPlot(Plotter.linePlot("count", Color.BLUE, NativeDelaunayGraphBuilder.count));
+            plot.addPlot(Plotter.linePlot("count", Color.BLUE, NativeDelaunayGraphBuilder.COUNT));
             new FrameView(plot);
         }
     }

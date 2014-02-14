@@ -1,5 +1,6 @@
 package ru.spbu.astro.model;
 
+import ru.spbu.astro.Message;
 import ru.spbu.astro.graphics.Framable;
 
 import java.util.ArrayList;
@@ -8,6 +9,7 @@ import java.util.Collection;
 import java.util.List;
 
 public final class Simplex implements Framable {
+
     private final List<Point> vertices;
 
     public Simplex(final Point... points) {
@@ -38,4 +40,5 @@ public final class Simplex implements Framable {
     public Rectangle getFrameRectangle() {
         return new Rectangle(vertices);
     }
+
 }

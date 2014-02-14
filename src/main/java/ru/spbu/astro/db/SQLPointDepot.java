@@ -1,5 +1,6 @@
 package ru.spbu.astro.db;
 
+import com.google.common.collect.Iterables;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
@@ -30,6 +31,10 @@ public final class SQLPointDepot implements PointDepot {
 
     @Override
     public Map<Integer, Point> get(final Iterable<Integer> ids) {
+        if (Iterables.isEmpty(ids)) {
+            return new HashMap<>();
+        }
+
         String query = "(";
         for (Integer id : ids) {
             query += id + ", ";
@@ -64,6 +69,8 @@ public final class SQLPointDepot implements PointDepot {
 
         return result;
     }
+
+
 
     @Override
     public int add(Point p) {

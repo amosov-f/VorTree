@@ -6,17 +6,24 @@ import ru.spbu.astro.model.Point;
 import java.util.*;
 
 public abstract class WalkableDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
-    protected WalkableDelaunayGraphBuilder(final Iterable<Point> points) {
+
+    protected WalkableDelaunayGraphBuilder(final Collection<Point> points) {
         super(points);
     }
 
-    protected WalkableDelaunayGraphBuilder(final Collection<Integer> pointIds) {
-        super(pointIds);
+    protected WalkableDelaunayGraphBuilder(final Map<Integer, Point> id2point) {
+        super(id2point);
     }
 
     public class WalkableDelaunayGraph extends AbstractDelaunayGraph {
+
         protected final List<Integer> borderVertices;
-        protected final Map<Simplex, Collection<Simplex> > side2simplexes;
+        public final Map<Simplex, Set<Simplex>> side2simplexes;
+
+        protected WalkableDelaunayGraph() {
+            borderVertices = new ArrayList<>();
+            side2simplexes = new HashMap<>();
+        }
 
         protected WalkableDelaunayGraph(final Collection<Integer> pointIds) {
             super(pointIds);
@@ -32,6 +39,17 @@ public abstract class WalkableDelaunayGraphBuilder extends AbstractDelaunayGraph
             super(g);
             borderVertices = new ArrayList<>(g.borderVertices);
             side2simplexes = new HashMap<>(g.side2simplexes);
+        }
+
+        protected WalkableDelaunayGraph(
+                final Map<Integer, Set<Integer>> neighbors,
+                final Set<Simplex> simplexes,
+                final List<Integer> borderVertices,
+                final Map<Simplex, Set<Simplex>> side2simplexes
+        ) {
+            super(neighbors, simplexes);
+            this.borderVertices = new ArrayList<>(borderVertices);
+            this.side2simplexes = new HashMap<>(side2simplexes);
         }
 
         @Override
@@ -113,5 +131,7 @@ public abstract class WalkableDelaunayGraphBuilder extends AbstractDelaunayGraph
         public Collection<Integer> getBorderVertices() {
             return borderVertices;
         }
+
     }
+
 }

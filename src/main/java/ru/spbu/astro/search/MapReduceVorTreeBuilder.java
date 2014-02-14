@@ -1,19 +1,24 @@
 package ru.spbu.astro.search;
 
+import com.google.common.base.Joiner;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.SerializationUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+import org.codehaus.jackson.annotate.JsonValue;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.json.JSONObject;
+import ru.spbu.astro.Message;
 import ru.spbu.astro.model.Graph;
 import ru.spbu.astro.model.Point;
-import ru.spbu.astro.search.AbstractVorTreeBuilder;
-import ru.spbu.astro.search.VorTreeBuilder;
 import ru.spbu.astro.search.mapreduce.DelaunayMapper;
 
 import java.io.*;
@@ -21,12 +26,16 @@ import java.util.*;
 
 public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
 
-    public MapReduceVorTreeBuilder(Iterable<Point> points, int m) {
-        super(points, m);
+    private final VorTreeBuilder vorTreeBuilder;
+
+    public MapReduceVorTreeBuilder(final Collection<Point> points, int division) {
+        super(points, division);
+        vorTreeBuilder = new VorTreeBuilder(id2point, division);
     }
 
-    public MapReduceVorTreeBuilder(Collection<Integer> pointIds, int m) {
-        super(pointIds, m);
+    public MapReduceVorTreeBuilder(final Map<Integer, Point> id2point, int division) {
+        super(id2point, division);
+        vorTreeBuilder = new VorTreeBuilder(id2point, division);
     }
 
     @Override
@@ -49,7 +58,7 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
                 Collections.shuffle(pointIdList);
                 final List<Integer> pivotIds = pointIdList.subList(0, Math.min(division, pointIdList.size()));
 
-                final VorTreeBuilder.VorTree pivotVorTree = (VorTreeBuilder.VorTree) build(pivotIds);
+                final VorTreeBuilder.VorTree pivotVorTree = (VorTreeBuilder.VorTree) vorTreeBuilder.build(pivotIds);
                 for (int pointId : pointIds) {
                     pointId2pivotId.put(pointId, pivotVorTree.getNearestNeighbor(id2point.get(pointId)));
                 }
@@ -69,6 +78,7 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
             }
 
             final Collection<List<Integer>> cells = pivotId2pointIds.values();
+
 
             List<VorTreeBuilder.VorTree> sons = new ArrayList<>();
             try {
@@ -119,29 +129,30 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
             }
         }
 
-        public List<VorTreeBuilder.VorTree> processMapReduce(Collection<List<Integer>> cells) throws Exception {
-
-            PrintWriter fout = new PrintWriter(new FileOutputStream("input.txt"));
-            for (List<Integer> cell : cells) {
-                for (int pointId : cell) {
-                    fout.print(pointId + " ");
-                }
-                fout.println();
+        public List<VorTreeBuilder.VorTree> processMapReduce(final Collection<List<Integer>> cells) throws Exception {
+            final PrintWriter fout = new PrintWriter(new FileOutputStream("input.txt"));
+            for (final List<Integer> cell : cells) {
+                fout.println(Joiner.on(' ').join(cell));
             }
             fout.flush();
 
-            Configuration configuration = new Configuration();
+            final Configuration conf = new Configuration();
 
-            Job job = new Job(configuration);
+            JSONObject json = new JSONObject();
+            json.put("id2point", id2point);
+            conf.set("id2point", json.toString());
+
+            Job job = new Job(conf);
 
             job.setJarByClass(MapReduceVorTreeBuilder.class);
             job.setMapperClass(DelaunayMapper.class);
             job.setNumReduceTasks(0);
 
             job.setInputFormatClass(TextInputFormat.class);
+            job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
-            job.setMapOutputKeyClass(NullWritable.class);
-            job.setMapOutputValueClass(BytesWritable.class);
+            job.setOutputKeyClass(IntWritable.class);
+            job.setOutputValueClass(BytesWritable.class);
 
             FileUtils.deleteDirectory(new File("output"));
             FileInputFormat.addInputPath(job, new Path("input.txt"));
@@ -149,19 +160,24 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
 
             job.waitForCompletion(true);
 
-            DataInputStream fin = new DataInputStream(new FileInputStream("output/part-m-00000"));
-            for (int i = 0; i < division; ++i) {
-                Graph t = (Graph) SerializationUtils.deserialize(fin);
-//            final FileInputStream fis = new FileInputStream("");
-//            for (int i = 0; i < m; ++i) {
-//                final VorTree v = VorTree.fromMessage(msg.parseDelimitedFrom(fis));
-//                AbstractDelaunayGraph t = (AbstractDelaunayGraph) SerializationUtils.deserialize(fin);
+            SequenceFile.Reader reader = new SequenceFile.Reader(FileSystem.get(conf), new Path("output/part-m-00000"), conf);
+            IntWritable key = new IntWritable();
+            BytesWritable value = (BytesWritable) reader.getValueClass().newInstance();
 
-                System.out.println("deserialized: " + t);
-                //sons.add(t);
-                //rTree.sons.add(t.rTree);
+            List<VorTreeBuilder.VorTree> sons = new ArrayList<>();
+            while (reader.next(key, value)) {
+                byte[] b = Arrays.copyOf(value.getBytes(), key.get());
+
+                Message.VorTreeMessage message = Message.VorTreeMessage.parseFrom(b);
+
+                final VorTreeBuilder.VorTree t = vorTreeBuilder.fromMessage(message);
+                sons.add(t);
+                rTree.sons.add(t.rTree);
             }
-            return null;
+
+            return sons;
         }
+
     }
+
 }

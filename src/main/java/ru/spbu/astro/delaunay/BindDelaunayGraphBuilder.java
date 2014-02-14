@@ -9,13 +9,19 @@ import java.util.*;
 @Deprecated
 public final class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder {
 
-    private final NativeDelaunayGraphBuilder nativeDelaunayGraphBuilder;
     private final int division;
+    private final NativeDelaunayGraphBuilder nativeDelaunayGraphBuilder;
 
     public BindDelaunayGraphBuilder(final Collection<Point> points, int division) {
         super(points);
         this.division = division;
-        nativeDelaunayGraphBuilder = new NativeDelaunayGraphBuilder(points);
+        nativeDelaunayGraphBuilder = new NativeDelaunayGraphBuilder(id2point);
+    }
+
+    public BindDelaunayGraphBuilder(final Map<Integer, Point> id2point, int division) {
+        super(id2point);
+        this.division = division;
+        nativeDelaunayGraphBuilder = new NativeDelaunayGraphBuilder(id2point);
     }
 
     @Override
@@ -25,14 +31,14 @@ public final class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder
 
     public Pair<Collection<AbstractDelaunayGraph>, Map<Integer, Integer>> split(final Collection<Integer> pointIds, int m, int level) {
 
-        List<Integer> perm = new ArrayList();
+        List<Integer> perm = new ArrayList<>();
         for (Integer pointId : pointIds)  {
             perm.add(pointId);
         }
         Collections.shuffle(perm);
 
 
-        List<Integer> pivotIds = new ArrayList();
+        List<Integer> pivotIds = new ArrayList<>();
         for (int i = 0; i < Math.min(m, perm.size()); ++i) {
             pivotIds.add(perm.get(i));
         }

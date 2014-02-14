@@ -1,17 +1,25 @@
 package ru.spbu.astro.model;
 
+import ru.spbu.astro.Message;
+
 import java.util.*;
 
 public class Triangulation extends Graph {
-    private final Set<Simplex> simplexes;
+
+    protected final Set<Simplex> simplexes;
 
     protected Triangulation() {
         simplexes = new HashSet<>();
     }
 
-    protected Triangulation(final Triangulation t) {
+    public Triangulation(final Triangulation t) {
         super(t);
         simplexes = new HashSet<>(t.simplexes);
+    }
+
+    protected Triangulation(final Map<Integer, Set<Integer>> neighbors, final Set<Simplex> simplexes) {
+        super(neighbors);
+        this.simplexes = new HashSet<>(simplexes);
     }
 
     public Collection<Integer> getBorderVertices() {
@@ -66,7 +74,8 @@ public class Triangulation extends Graph {
         }
     }
 
-    public static final class Simplex {
+    public static final class Simplex implements Iterable<Integer> {
+
         private final List<Integer> vertices;
 
         public Simplex(final Collection<Integer> vertices) {
@@ -123,5 +132,22 @@ public class Triangulation extends Graph {
         public String toString() {
             return "Simplex(" + vertices + ")";
         }
+
+        @Override
+        public Iterator<Integer> iterator() {
+            return vertices.iterator();
+        }
+
+        public Message.SimplexMessage toMessage() {
+            final Message.SimplexMessage.Builder builder = Message.SimplexMessage.newBuilder();
+            builder.addAllVertices(vertices);
+            return builder.build();
+        }
+
+        public static Simplex fromMessage(final Message.SimplexMessage message) {
+            return new Simplex(message.getVerticesList());
+        }
+
     }
+
 }

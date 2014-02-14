@@ -1,17 +1,24 @@
 package ru.spbu.astro.model;
 
+import com.google.common.collect.Iterables;
+
 import java.io.Serializable;
 import java.util.*;
 
 public class Graph implements Iterable<Graph.Edge>, Cloneable, Serializable {
-    private final Map<Integer, Set<Integer>> neighbors;
+
+    protected final Map<Integer, Set<Integer>> neighbors;
 
     public Graph() {
         neighbors = new HashMap<>();
     }
 
     public Graph(Graph g) {
-        neighbors = new HashMap<>(g.neighbors);
+        this(g.neighbors);
+    }
+
+    protected Graph(final Map<Integer, Set<Integer>> neighbors) {
+        this.neighbors = new HashMap<>(neighbors);
     }
 
     public void addVertex(int u) {
@@ -108,7 +115,7 @@ public class Graph implements Iterable<Graph.Edge>, Cloneable, Serializable {
     }
 
     public int size() {
-        return neighbors.size();
+        return Iterables.size(this);
     }
 
     @Override

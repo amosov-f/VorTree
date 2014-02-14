@@ -9,7 +9,7 @@ public final class ColorGenerator {
 
     public static Color nextLight() {
         Random rand = new Random();
-        return new Color(rand.nextInt(106) + 150, rand.nextInt(106) + 150, rand.nextInt(106) + 150);
+        return new Color(rand.nextInt(100) + 150, rand.nextInt(100) + 150, rand.nextInt(100) + 150);
     }
 
     public static Color nextRed() {

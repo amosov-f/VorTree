@@ -1,60 +1,54 @@
 package ru.spbu.astro.search.mapreduce;
 
-import org.apache.commons.lang.SerializationUtils;
 import org.apache.hadoop.io.*;
-import org.apache.hadoop.io.serializer.JavaSerialization;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import ru.spbu.astro.db.PointDepot;
-import ru.spbu.astro.delaunay.AbstractDelaunayGraphBuilder;
-import ru.spbu.astro.delaunay.VisadDelaunayGraphBuilder;
-import ru.spbu.astro.model.Graph;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import ru.spbu.astro.model.Point;
-import ru.spbu.astro.search.AbstractVorTreeBuilder;
 import ru.spbu.astro.search.VorTreeBuilder;
-import ru.spbu.astro.Schema.msg;
 
+import java.io.IOException;
+import java.util.*;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Random;
+public class DelaunayMapper extends Mapper<LongWritable, Text, IntWritable, BytesWritable> {
 
-public class DelaunayMapper extends Mapper<LongWritable, Text, NullWritable, BytesWritable> {
-    //private final PointDepot id2point;
+    private final Map<Integer, Point> id2point = new HashMap<>();
 
-    //public DelaunayMapper() {
-    //    id2point = (PointDepot) new ClassPathXmlApplicationContext("application-context.xml").getBean("pointDepot");
-    //}
+    @Override
+    protected void setup(Context context) throws IOException, InterruptedException {
+        Map<String, String> idString2pointString = null;
+        try {
+            idString2pointString = new ObjectMapper().readValue(
+                    new JSONObject(context.getConfiguration().get("id2point")).get("id2point").toString(),
+                    new TypeReference<HashMap<String, String>>() {
+                    }
+            );
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        assert idString2pointString != null;
+        for (Map.Entry<String, String> entry : idString2pointString.entrySet()) {
+            id2point.put(new Integer(entry.getKey()), new Point(entry.getValue()));
+        }
+    }
 
     @Override
     protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-        ArrayList<Integer> pointIds = new ArrayList();
+        final List<Integer> pointIds = new ArrayList<>();
         for (String s : value.toString().split("\\s+")) {
             pointIds.add(Integer.valueOf(s));
         }
+        System.out.println("map: " + pointIds);
 
-        System.out.println(pointIds);
+        VorTreeBuilder builder = new VorTreeBuilder(id2point, 2);
+        VorTreeBuilder.VorTree t = (VorTreeBuilder.VorTree) builder.build(pointIds);
 
-        //VisadDelaunayGraphBuilder builder = new VisadDelaunayGraphBuilder(pointIds);
-        //VisadDelaunayGraphBuilder.VisadDelaunayGraph t = (VisadDelaunayGraphBuilder.VisadDelaunayGraph) builder.build();
+        byte[] b = t.toMessage().toByteArray();
 
-
-        VorTreeBuilder builder = new VorTreeBuilder(pointIds, 2);
-        VorTreeBuilder.VorTree t = (VorTreeBuilder.VorTree) builder.build();
-
-        Graph g = new Graph();
-        g.addGraph(t);
-
-        System.out.println(g);
-        byte[] bytes = SerializationUtils.serialize(g);
-        System.out.println("serialization completed");
-
-        //System.out.println(Arrays.toString(bytes));
-//        System.out.println(Arrays.toString(bytes));
-//        b.writeDelimitedTo();
-//        context.write(NullWritable.get(), new BytesWritable(b.toByteArray()));
-//
-//        msg.parseFrom(bytes)
+        context.write(new IntWritable(b.length), new BytesWritable(b));
     }
 }

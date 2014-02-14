@@ -1,11 +1,16 @@
 package ru.spbu.astro.model;
 
+import com.google.common.collect.Iterables;
+import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
+import ru.spbu.astro.Message;
 import ru.spbu.astro.graphics.Framable;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 public final class Point implements Iterable<Long>, Framable, Serializable {
     private final long[] coordinates;
@@ -18,8 +23,24 @@ public final class Point implements Iterable<Long>, Framable, Serializable {
         this.coordinates = coordinates.clone();
     }
 
+
     public Point(final Point p) {
         this(p.coordinates);
+    }
+
+    public Point(final Collection<Long> coordinates) {
+        this(Longs.toArray(coordinates));
+    }
+
+    public Point(final String[] s) {
+        coordinates = new long[s.length];
+        for (int i = 0; i < coordinates.length; ++i) {
+            coordinates[i] = new Long(s[i]);
+        }
+    }
+
+    public Point(String s) {
+        this(s.substring(1, s.length() - 1).split(", "));
     }
 
     public long get(int i) {
@@ -153,7 +174,7 @@ public final class Point implements Iterable<Long>, Framable, Serializable {
 
     @Override
     public String toString() {
-        return "Point(" + Arrays.toString(coordinates) + ")";
+        return Arrays.toString(coordinates);
     }
 
     @Override
@@ -165,4 +186,23 @@ public final class Point implements Iterable<Long>, Framable, Serializable {
     public Rectangle getFrameRectangle() {
         return new Rectangle(this);
     }
+
+    public String[] toStrings() {
+        String[] s = new String[coordinates.length];
+        for (int i = 0; i < s.length; ++i) {
+            s[i] = String.valueOf(coordinates[i]);
+        }
+        return s;
+    }
+
+    public Message.PointMessage toMessage() {
+        final Message.PointMessage.Builder builder = Message.PointMessage.newBuilder();
+        builder.addAllCoordinates(Longs.asList(coordinates));
+        return builder.build();
+    }
+
+    public static Point fromMessage(final Message.PointMessage message) {
+        return new Point(message.getCoordinatesList());
+    }
+
 }
