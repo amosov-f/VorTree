@@ -30,7 +30,7 @@ public class VorTreeVisualizerEngine {
 
         @Override
         public void build() {
-            final List<Point> points = PointGenerator.nextUniforms(20, 1000 * getWidth(), 1000 * getHeight());
+            final List<Point> points = PointGenerator.nextUniforms(10, 1000 * getWidth(), 1000 * getHeight());
 
             final AbstractDelaunayGraphBuilder builder1 = new VisadDelaunayGraphBuilder(points);
             final AbstractVorTreeBuilder builder2 = new MapReduceVorTreeBuilder(points);

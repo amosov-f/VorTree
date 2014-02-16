@@ -2,9 +2,9 @@ package ru.spbu.astro.other;
 
 import org.math.plot.FrameView;
 import org.math.plot.Plot2DPanel;
-import ru.spbu.astro.delaunay.BindDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.NativeDelaunayGraphBuilder;
 import ru.spbu.astro.model.Point;
+import ru.spbu.astro.search.VorTreeBuilder;
 import ru.spbu.astro.utility.Plotter;
 import ru.spbu.astro.utility.PointGenerator;
 
@@ -12,27 +12,30 @@ import java.awt.*;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
 
 public class AlgorithmsComparisonEngine {
 
     private static final int LN = 1;
-    private static final int RN = 100;
+    private static final int RN = 86;
 
     private static final int T = 5;
 
     public static void main(String[] args) throws Exception {
-        Map<Integer, Double> f1 = new HashMap();
-        Map<Integer, Double> f2 = new HashMap();
+        Map<Integer, Double> f1 = new HashMap<>();
+        Map<Integer, Double> f2 = new HashMap<>();
 
-        Scanner fin = new Scanner(new FileInputStream("datasets/time.txt"));
+        Scanner fin = new Scanner(new FileInputStream("results/time.txt"));
         while (fin.hasNextInt()) {
             int n = fin.nextInt();
             f1.put(n, fin.nextDouble());
             f2.put(n, fin.nextDouble());
         }
 
-        PrintWriter fout = new PrintWriter(new FileOutputStream("datasets/time.txt", true));
+        PrintWriter fout = new PrintWriter(new FileOutputStream("results/time.txt", true));
 
         for (int n = LN; n <= RN; ++n) {
             System.out.print(n + ": ");
@@ -44,7 +47,7 @@ public class AlgorithmsComparisonEngine {
                     Collection<Point> points = PointGenerator.nextUniforms(n);
 
                     NativeDelaunayGraphBuilder nativeDelaunayGraphBuilder = new NativeDelaunayGraphBuilder(points);
-                    BindDelaunayGraphBuilder bindDelaunayGraphBuilder = new BindDelaunayGraphBuilder(points, 2);
+                    VorTreeBuilder bindDelaunayGraphBuilder = new VorTreeBuilder(points);
 
                     long t1 = System.currentTimeMillis();
                     nativeDelaunayGraphBuilder.build();
