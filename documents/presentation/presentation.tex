@@ -5,6 +5,9 @@
 \usepackage{amssymb,amsfonts,amsmath,mathtext}
 \usepackage{cite,enumerate,float,indentfirst}
 \usepackage{cancel}
+\usepackage{color}
+\usepackage{hyperref}
+\hypersetup{colorlinks,urlcolor=NavyBlue}
 
 \usepackage{tikz}                   
 \usetikzlibrary{shadows}
@@ -118,8 +121,9 @@
         \end{frame}
         
         \begin{frame}{Плохие и хорошие треугольники}
+            ~~~~~ Плохой треугольник ~~~~~~ Хороший треугольник
             \begin{center}
-	            Картинка с плохими и хорошими треугольниками
+	            \includegraphics[scale=0.3]{creep.png}~~\includegraphics[scale=0.3]{no-creep.png}
 	        \end{center}       
         \end{frame}
         
@@ -144,70 +148,86 @@
         
         \begin{frame}{Построение графа Делоне 1}
             \begin{center}
-                Картинка с точками
+                \includegraphics[scale=0.295]{1.png}
             \end{center}             
         \end{frame}
         
         \begin{frame}{Построение графа Делоне 2}
             \begin{center}
-                Картинка с выделенными пайвотами
+                \includegraphics[scale=0.295]{2.png}
             \end{center}              
         \end{frame}
        
 
         \begin{frame}{Построение графа Делоне 3}
             \begin{center}
-                Картинка с разделением на части
+                \includegraphics[scale=0.295]{3.png}
             \end{center}             
         \end{frame}
         
         \begin{frame}{Построение графа Делоне 4}
             \begin{center}
-                Картинка с построенными графами Делоне
-            \end{center}            
+                \includegraphics[scale=0.295]{4.png}
+            \end{center}             
         \end{frame}
         
         \begin{frame}{Построение графа Делоне 5}
             \begin{center}
-                Картинка с выделенными плохими треугольниками
+                \includegraphics[scale=0.295]{5.png}
             \end{center}            
         \end{frame}
         
         \begin{frame}{Построение графа Делоне 6}
             \begin{center}
-                Картинка с удаленными плохими треугольниками
-            \end{center}             
+                \includegraphics[scale=0.295]{6.png}
+            \end{center}            
         \end{frame}
         
         \begin{frame}{Построение графа Делоне 7}
             \begin{center}
-                Картинка с хорошо выделенными граничными точками и более тускло все остальное
+                \includegraphics[scale=0.295]{7.png}
             \end{center}             
         \end{frame}
         
         \begin{frame}{Построение графа Делоне 8}
             \begin{center}
-                Картинка как предыдущая, только со склеивающим графом Делоне
+                \includegraphics[scale=0.295]{8.png}
             \end{center}             
-        \end{frame}    
+        \end{frame}
         
         \begin{frame}{Построение графа Делоне 9}
             \begin{center}
-                Из предыдущей картинки выкидываются <<ненужные>> ребра
-            \end{center}            
-        \end{frame}  
+                \includegraphics[scale=0.295]{9.png}
+            \end{center}             
+        \end{frame}    
         
         \begin{frame}{Построение графа Делоне 10}
             \begin{center}
-                Все в цвете
+                \includegraphics[scale=0.295]{10.png}
             \end{center}            
         \end{frame}  
+       
         
         \begin{frame}{Построение графа Делоне 11}
             \begin{center}
-                Итоговый граф Делоне
+                \includegraphics[scale=0.295]{11.png}
             \end{center}             
         \end{frame} 
+        
+        \begin{frame}{Наш алгоритм}
+            \begin{enumerate}
+                \item Разбить множество точек на несколько частей$^*$
+                \item Построить на каждой части граф Делоне
+                \item Удалить в каждом построенном графе <<плохие>> треугольники
+                \item Добавить все оставшееся в итоговый граф 
+                \item Построить на границах оставшегося <<склеивающий>> граф Делоне
+                \item Добавить в итоговый граф ребра <<склеивающего>> графа
+                    \begin{itemize}
+                        \item соединяющие разные части
+                        \item удаленные на 3 этапе
+                    \end{itemize} 
+            \end{enumerate}                       
+        \end{frame}
         
     \section{Анализ алгоритма} 
         
@@ -239,16 +259,24 @@
         \begin{frame}{На практике}
             Ускорение наивного алгоритма
             \begin{center}
-                \includegraphics[scale=0.44]{comparison.png}
-            \end{center}           
+                \includegraphics[scale=0.4]{comparison.png}\\
+                Время работы от размера задачи   
+            \end{center}  
+                  
         \end{frame}
         
     \section{MapReduce}
-    
-        \begin{frame}{Распараллеливание}
+        
+        \begin{frame}{Распараллеливание 1}
             \begin{center}
-                Картинка с разбиением на части
-            \end{center}
+                \includegraphics[scale=0.295]{4.png}
+            \end{center}             
+        \end{frame}
+        
+        \begin{frame}{Распараллеливание 2}
+            \begin{center}
+                \includegraphics[scale=0.295]{5.png}
+            \end{center}            
         \end{frame}
         
         \begin{frame}{Технология MapReduce}
@@ -280,15 +308,11 @@
         
         \begin{frame}{Q\&A}
             \begin{center}
-                Спасибо за внимание!
+                Спасибо за внимание!\\
+                \href{https://github.com/amosov-f/VorTree}{github.com/amosov-f/VorTree}
+                %{github.com/amosov-f/VorTree}
             \end{center}
         \end{frame}
-        
-        
-        
-
-    
-        
         
 
 \end{document}

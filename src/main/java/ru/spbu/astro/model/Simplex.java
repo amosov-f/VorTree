@@ -2,12 +2,9 @@ package ru.spbu.astro.model;
 
 import ru.spbu.astro.graphics.Framable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
-public final class Simplex implements Framable {
+public final class Simplex implements Framable, Iterable<Line> {
 
     private final List<Point> vertices;
 
@@ -38,6 +35,17 @@ public final class Simplex implements Framable {
     @Override
     public Rectangle getFrameRectangle() {
         return new Rectangle(vertices);
+    }
+
+    @Override
+    public Iterator<Line> iterator() {
+        final List<Line> lines = new ArrayList<>();
+        for (int i = 0; i < vertices.size(); ++i) {
+            for (int j = i + 1; j < vertices.size(); ++j) {
+                lines.add(new Line(vertices.get(i), vertices.get(j)));
+            }
+        }
+        return lines.iterator();
     }
 
 }

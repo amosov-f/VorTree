@@ -4,7 +4,7 @@ package ru.spbu.astro.graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
-public abstract class ClickableView extends CenteredView implements Builder {
+public abstract class ClickableView extends CenteredView {
 
     public abstract void build();
 

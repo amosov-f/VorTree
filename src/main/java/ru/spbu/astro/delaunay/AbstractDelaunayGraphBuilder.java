@@ -1,6 +1,7 @@
 package ru.spbu.astro.delaunay;
 
 import com.google.common.collect.Iterables;
+import com.google.common.primitives.Ints;
 import ru.spbu.astro.Message;
 import ru.spbu.astro.graphics.Framable;
 import ru.spbu.astro.model.*;
@@ -32,12 +33,50 @@ public abstract class AbstractDelaunayGraphBuilder {
         return build(id2point.keySet());
     }
 
+    public AbstractDelaunayGraph build(final int... pointIds) {
+        return build(Ints.asList(pointIds));
+    }
+
     public List<Point> get(final Iterable<Integer> pointIds) {
         final List<Point> points = new ArrayList<>();
         for (int pointId : pointIds) {
-            points.add(id2point.get(pointId));
+            points.add(get(pointId));
         }
         return points;
+    }
+
+    public Point get(int pointId) {
+        return id2point.get(pointId);
+    }
+
+    public boolean isCreep(final Triangulation.Simplex s) {
+        final Ball b = new Ball(get(s));
+        for (final Point p : get(id2point.keySet())) {
+            if (b.contains(p)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public final List<ru.spbu.astro.model.Simplex> getCreepPointSimplexes(final AbstractDelaunayGraph g) {
+        final List<Simplex> creepSimplexes = new ArrayList<>();
+        for (final Triangulation.Simplex s : g.getSimplexes()) {
+            if (isCreep(s)) {
+                creepSimplexes.add(new Simplex(get(s)));
+            }
+        }
+        return creepSimplexes;
+    }
+
+    public final List<Simplex> getNormalPointSimplexes(final AbstractDelaunayGraph g) {
+        final List<Simplex> normalSimplexes = new ArrayList<>();
+        for (final Triangulation.Simplex s : g.getSimplexes()) {
+            if (!isCreep(s)) {
+                normalSimplexes.add(new Simplex(get(s)));
+            }
+        }
+        return normalSimplexes;
     }
 
     public class AbstractDelaunayGraph extends Triangulation implements Framable {
@@ -76,6 +115,10 @@ public abstract class AbstractDelaunayGraphBuilder {
             return false;
         }
 
+        public AbstractDelaunayGraphBuilder getBuilder() {
+            return AbstractDelaunayGraphBuilder.this;
+        }
+
         public final Set<Integer> getBindPointIds(final AbstractDelaunayGraph g) {
             final Set<Integer> bindPointIds = new HashSet<>(g.getBorderVertices());
             for (final Simplex s : getCreepSimplexes(g)) {
@@ -110,10 +153,14 @@ public abstract class AbstractDelaunayGraphBuilder {
 
         public List<Line> getPointEdges() {
             List<Line> edges = new ArrayList<>();
-            for (final Edge edge : getEdges()) {
-                edges.add(new Line(id2point.get(edge.getFirst()), id2point.get(edge.getSecond())));
+            for (Edge e : getSimplexGraph()) {
+                edges.add(new Line(id2point.get(e.getFirst()), id2point.get(e.getSecond())));
             }
             return edges;
+        }
+
+        public List<Point> getBorderPoints() {
+            return get(getBorderVertices());
         }
 
         public final Collection<Point> getPoints() {
@@ -137,6 +184,20 @@ public abstract class AbstractDelaunayGraphBuilder {
                 }
             }
             return creepSimplexes;
+        }
+
+        public List<Simplex> getCreepSimplexes() {
+            final List<Simplex> creepSimplexes = new ArrayList<>();
+            for (final Simplex s : getSimplexes()) {
+                if (isCreep(s)) {
+                    creepSimplexes.add(s);
+                }
+            }
+            return creepSimplexes;
+        }
+
+        public List<Point> getIsolatedPoints() {
+            return get(getIsolatedVertices());
         }
 
         public Message.AbstractDelaunayGraph toAbstractDelaunayGraphMessage() {

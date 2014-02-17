@@ -20,4 +20,9 @@ public final class ColorGenerator {
     public static Color nextDeep(int level) {
         return Color.getHSBColor(240f / 360, 1f, 1 - Math.min(level * 30f / 255, 1f));
     }
+
+    public static Color next(int hash) {
+        return new Color((hash * 97 + 120) % 256, (hash * 19 + 120) % 256, (hash * 119 + 170) % 256);
+    }
+
 }

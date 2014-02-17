@@ -3,6 +3,7 @@ package ru.spbu.astro.other;
 import ru.spbu.astro.delaunay.AbstractDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.BindDelaunayGraphBuilder;
 import ru.spbu.astro.graphics.CenteredView;
+import ru.spbu.astro.graphics.View;
 import ru.spbu.astro.model.Ball;
 import ru.spbu.astro.model.Line;
 import ru.spbu.astro.model.Point;
@@ -96,10 +97,7 @@ public class Lemma1VisualizerEngine {
     }
 
     public static void main(String[] args) {
-        Component balls = new Figure3();
-        JWindow window = new JWindow();
-        window.setSize(balls.getSize());
-        window.add(balls);
-        window.setVisible(true);
+        new View.Window(new Figure1());
     }
+
 }

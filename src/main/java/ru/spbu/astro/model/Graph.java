@@ -122,6 +122,16 @@ public class Graph implements Iterable<Graph.Edge>, Cloneable, Serializable {
         return Iterables.size(this);
     }
 
+    public List<Integer> getIsolatedVertices() {
+        final List<Integer> isolatedVertices = new ArrayList<>();
+        for (int u : getVertices()) {
+            if (getNeighbors(u).isEmpty()) {
+                isolatedVertices.add(u);
+            }
+        }
+        return isolatedVertices;
+    }
+
     @Override
     public Iterator<Edge> iterator() {
         return getEdges().iterator();
@@ -147,7 +157,7 @@ public class Graph implements Iterable<Graph.Edge>, Cloneable, Serializable {
         return builder.build();
     }
 
-    protected final static class Edge {
+    public final static class Edge {
         private final int first;
         private final int second;
 

@@ -2,6 +2,7 @@ package ru.spbu.astro.delaunay;
 
 import ru.spbu.astro.Message;
 import ru.spbu.astro.model.Graph;
+import ru.spbu.astro.model.Line;
 import ru.spbu.astro.model.Point;
 
 import java.util.*;
@@ -85,6 +86,24 @@ public abstract class WalkableDelaunayGraphBuilder extends AbstractDelaunayGraph
                 }
             }
             return borderSimplexes;
+        }
+
+        public List<Simplex> getBorderSides() {
+            final List<Simplex> borderSides = new ArrayList<>();
+            for (final Simplex side : side2simplexes.keySet()) {
+                if (side2simplexes.get(side).size() == 1) {
+                    borderSides.add(side);
+                }
+            }
+            return borderSides;
+        }
+
+        public List<Line> getBorderEdges() {
+            final List<Line> borderEdges = new ArrayList<>();
+            for (Simplex s : getBorderSides()) {
+                borderEdges.add(new Line(get(s.getVertices().get(0)), get(s.getVertices().get(1))));
+            }
+            return borderEdges;
         }
 
         @Override

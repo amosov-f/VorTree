@@ -1,24 +1,28 @@
 package ru.spbu.astro.graphics;
 
 import ru.spbu.astro.delaunay.AbstractDelaunayGraphBuilder;
+import ru.spbu.astro.delaunay.WalkableDelaunayGraphBuilder;
 import ru.spbu.astro.model.*;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.model.Rectangle;
+import ru.spbu.astro.search.VorTreeBuilder;
 import ru.spbu.astro.utility.ColorGenerator;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import java.util.Set;
 
 
 public class CenteredView extends Component {
     private static final int ALIGN = 20;
     protected Rectangle frameRect;
 
-    protected List<Item> items = new ArrayList();
+    protected List<Item> items = new ArrayList<Item>();
 
     public enum DelaunayGraphViewMode {
-        DEFAULT, NO_TRIANGLES, CREEP_ONLY;
+        DEFAULT, NO_TRIANGLES, CREEP, CREEP_ONLY, CIRCUM, CREEP_CIRCUM, NO_CREEP, BORDER
     }
 
     public enum TriangleViewMode {
@@ -50,6 +54,10 @@ public class CenteredView extends Component {
         public PointPainter() {
         }
 
+        public PointPainter(int size) {
+            this.size = size;
+        }
+
         public PointPainter(Color color, int size) {
             this.color = color;
             this.size = size;
@@ -58,7 +66,14 @@ public class CenteredView extends Component {
         @Override
         public void paint(Point p, Graphics g) {
             g.setColor(color);
-            g.fillOval(toWindow(p).x - size, toWindow(p).y - size, 2 * size, 2 * size);
+
+            int x = toWindow(p).x;
+            int y = toWindow(p).y;
+            if (size == 0) {
+                g.drawLine(x, y, x, y);
+            } else {
+                g.fillOval(x - size, y - size, 2 * size, 2 * size);
+            }
         }
 
         @Override
@@ -87,13 +102,23 @@ public class CenteredView extends Component {
     }
 
     public class BallPainter extends AbstractPainter<Ball> {
-        private Color color = Color.RED;
+
+        private final Color color;
+        private final int width;
 
         public BallPainter() {
+            color = Color.BLACK;
+            width = 1;
         }
 
-        public BallPainter(Color color) {
+        public BallPainter(final Color color) {
             this.color = color;
+            width = 1;
+        }
+
+        public BallPainter(int width) {
+            color = Color.BLACK;
+            this.width = width;
         }
 
         @Override
@@ -102,6 +127,8 @@ public class CenteredView extends Component {
 
             java.awt.Point minVertex = toWindow(b.getFrameRectangle().getMinVertex());
             java.awt.Point maxVertex = toWindow(b.getFrameRectangle().getMaxVertex());
+
+            ((Graphics2D) g).setStroke(new BasicStroke(width));
 
             g.drawOval(minVertex.x, minVertex.y, maxVertex.x - minVertex.x, maxVertex.y - minVertex.y);
         }
@@ -136,6 +163,34 @@ public class CenteredView extends Component {
             java.awt.Point p2 = toWindow(line.getSecond());
 
             g.drawLine(p1.x, p1.y, p2.x, p2.y);
+        }
+    }
+
+    public class VoronoiDiagramPainter extends AbstractPainter<VoronoiDiagram> {
+
+        @Override
+        public void paint(final VoronoiDiagram diagram, Graphics g) {
+            for (int x = 0; x < getWidth(); ++x) {
+                for (int y = 0; y < getHeight(); ++y) {
+
+                    final Point p = fromWindow(new java.awt.Point(x, y));
+                    int NN = diagram.getNearestNeighbor(p);
+
+                    if (NN != 0 && NN != 1 && NN != 2) {
+                        System.out.println("!!!");
+                    }
+                    //System.out.println(ColorGenerator.next(diagram.getNearestNeighbor(p)));
+                    final PointPainter pointPainter = new PointPainter(
+                            ColorGenerator.next(diagram.getNearestNeighbor(p)),
+                            2
+                    );
+                    pointPainter.paint(p, g);
+                }
+            }
+            for (Point p : diagram.getSites()) {
+                final PointPainter pointPainter = new PointPainter(4);
+                pointPainter.paint(p, g);
+            }
         }
     }
 
@@ -189,15 +244,25 @@ public class CenteredView extends Component {
 
     public class DelaunayGraphPainter extends AbstractPainter<AbstractDelaunayGraphBuilder.AbstractDelaunayGraph> {
 
-        private Color edgeColor = ColorGenerator.EDGE_DEFAULT;
-        private int width = 1;
-        DelaunayGraphViewMode mode = DelaunayGraphViewMode.DEFAULT;
-
+        private final Color edgeColor;
+        private final int width;
+        private final DelaunayGraphViewMode mode;
 
         public DelaunayGraphPainter() {
+            this.edgeColor = ColorGenerator.EDGE_DEFAULT;
+            this.width = 1;
+            this.mode = DelaunayGraphViewMode.DEFAULT;
         }
 
+        public DelaunayGraphPainter(DelaunayGraphViewMode mode) {
+            edgeColor = ColorGenerator.EDGE_DEFAULT;
+            width = 1;
+            this.mode = mode;
+        }
+
+
         public DelaunayGraphPainter(int width, DelaunayGraphViewMode mode) {
+            edgeColor = ColorGenerator.EDGE_DEFAULT;
             this.width = width;
             this.mode = mode;
         }
@@ -211,36 +276,106 @@ public class CenteredView extends Component {
         @Override
         public void paint(AbstractDelaunayGraphBuilder.AbstractDelaunayGraph graph, Graphics g) {
 
-            Composite composite = ((Graphics2D) g).getComposite();
+            //Composite composite = ((Graphics2D) g).getComposite();
 
 
-            ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
+            //((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
 
-            TrianglePainter trianglePainter = null;
-            if (mode == DelaunayGraphViewMode.DEFAULT) {
-                trianglePainter = new TrianglePainter(TriangleViewMode.DEFAULT);
+            TrianglePainter trianglePainter;
+            BallPainter ballPainter;
+            LinePainter linePainter;
+            PointPainter pointPainter;
+            switch (mode) {
+                case DEFAULT:
+                    trianglePainter = new TrianglePainter();
+                    for (Simplex s : graph.getPointSimplexes()) {
+                        trianglePainter.paint(s, g);
+                    }
+                    break;
+                case CREEP:
+                    trianglePainter = new TrianglePainter();
+                    for (Simplex s : graph.getPointSimplexes()) {
+                        trianglePainter.paint(s, g);
+                    }
+                    trianglePainter = new TrianglePainter(TriangleViewMode.CREEP);
+                    for (Simplex s : graph.getBuilder().getCreepPointSimplexes(graph)) {
+                        trianglePainter.paint(s, g);
+                    }
+                    break;
+                case CREEP_ONLY:
+                    trianglePainter = new TrianglePainter(TriangleViewMode.CREEP);
+                    for (Simplex s : graph.getBuilder().getCreepPointSimplexes(graph)) {
+                        trianglePainter.paint(s, g);
+                    }
+                    break;
+                case CIRCUM:
+                    trianglePainter = new TrianglePainter();
+                    ballPainter = new BallPainter(2);
+                    for (Simplex s : graph.getPointSimplexes()) {
+                        trianglePainter.paint(s, g);
+                        ballPainter.paint(new Ball(s.getVertices()), g);
+                    }
+
+                    trianglePainter = new TrianglePainter(TriangleViewMode.CREEP);
+                    for (Simplex s : graph.getBuilder().getCreepPointSimplexes(graph)) {
+                        trianglePainter.paint(s, g);
+                    }
+                    break;
+                case CREEP_CIRCUM:
+                    trianglePainter = new TrianglePainter(TriangleViewMode.CREEP);
+                    ballPainter = new BallPainter(1);
+                    for (Simplex s : graph.getBuilder().getCreepPointSimplexes(graph)) {
+                        ballPainter.paint(new Ball(s.getVertices()), g);
+                        trianglePainter.paint(s, g);
+
+                    }
+                    break;
+                case NO_CREEP:
+                    linePainter = new LinePainter(edgeColor, width);
+                    pointPainter = new PointPainter(Color.BLACK, 2);
+
+                    for (Line edge : graph.getPointEdges()) {
+                        linePainter.paint(edge, g);
+                        pointPainter.paint(edge.getFirst(), g);
+                        pointPainter.paint(edge.getSecond(), g);
+                    }
+
+                    for (final Point p : graph.getIsolatedPoints()) {
+                        pointPainter.paint(p, g);
+                    }
+                    return;
+                case BORDER:
+
+                    //((Graphics2D) g).setComposite(composite);
+                    ((Graphics2D) g).setStroke(new BasicStroke(width));
+
+                    linePainter = new LinePainter(edgeColor.brighter().brighter().brighter(), width);
+                    pointPainter = new PointPainter(Color.GRAY.brighter(), 0);
+                    for (Line edge : graph.getPointEdges()) {
+                        linePainter.paint(edge, g);
+                        pointPainter.paint(edge.getFirst(), g);
+                        pointPainter.paint(edge.getSecond(), g);
+                    }
+
+                    linePainter = new LinePainter(edgeColor, width);
+                    pointPainter = new PointPainter(Color.BLACK, 3);
+                    for (final Line edge : ((WalkableDelaunayGraphBuilder.WalkableDelaunayGraph) graph).getBorderEdges()) {
+                        linePainter.paint(edge, g);
+                        pointPainter.paint(edge.getFirst(), g);
+                        pointPainter.paint(edge.getSecond(), g);
+                    }
+
+                    for (final Point p : graph.getIsolatedPoints()) {
+                        pointPainter.paint(p, g);
+                    }
+
+                    return;
+
             }
 
-            if (trianglePainter != null) {
-                for (Simplex s : graph.getPointSimplexes()) {
-                    trianglePainter.paint(s, g);
-                }
-            }
-            /*
-            if (mode != DelaunayGraphViewMode.NO_TRIANGLES) {
-                trianglePainter = new TrianglePainter(TriangleViewMode.CREEP);
-                for (Simplex s : getCreepPointSimplexes(graph)) {
-                    trianglePainter.paint(s, g);
-                }
-            }
-            */
 
-            ((Graphics2D) g).setComposite(composite);
-
-            ((Graphics2D) g).setStroke(new BasicStroke(width));
-
-            LinePainter linePainter = new LinePainter(edgeColor, width);
-            PointPainter pointPainter = new PointPainter(Color.BLACK, 0);
+            linePainter = new LinePainter(edgeColor, width);
+            pointPainter = new PointPainter(Color.BLACK, 1);
 
             for (Line edge : graph.getPointEdges()) {
                 linePainter.paint(edge, g);
@@ -293,6 +428,9 @@ public class CenteredView extends Component {
         if (f instanceof AbstractDelaunayGraphBuilder.AbstractDelaunayGraph) {
             return new DelaunayGraphPainter();
         }
+        if (f instanceof VoronoiDiagram) {
+            return new VoronoiDiagramPainter();
+        }
         return null;
     }
 
@@ -336,8 +474,10 @@ public class CenteredView extends Component {
         int h = getHeight() - 2 * ALIGN;
         long rw = frameRect.getWidth();
         long rh = frameRect.getHeight();
+
         long rx = p.getX() - frameRect.getX();
         long ry = p.getY() - frameRect.getY();
+
         int x;
         int y;
         if (w * rh > rw * h) {
@@ -349,6 +489,28 @@ public class CenteredView extends Component {
         }
 
         return new java.awt.Point(x + ALIGN, y + ALIGN);
+    }
+
+    private Point fromWindow(java.awt.Point p) {
+        int w = getWidth() - 2 * ALIGN;
+        int h = getHeight() - 2 * ALIGN;
+        long rw = frameRect.getWidth();
+        long rh = frameRect.getHeight();
+
+        int x = p.x - ALIGN;
+        int y = p.y - ALIGN;
+
+        long rx;
+        long ry;
+        if (w * rh > rw * h) {
+            rx = ((rw * h - w * rh + 2 * x * rh) / (2 * h));
+            ry = y * rh / h;
+        } else {
+            rx = x * rw / w;
+            ry = (w * rh - rw * h + 2 * y * rw) / (2 * w);
+        }
+
+        return new Point(rx + frameRect.getX(), ry + frameRect.getY());
     }
 
 }
