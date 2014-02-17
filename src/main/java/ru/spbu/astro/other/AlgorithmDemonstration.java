@@ -408,7 +408,7 @@ public class AlgorithmDemonstration {
     }
 
     public static void main(final String[] args) {
-        new View.Window(new Figure3());
+        new View.Window(new Figure2());
     }
 
 }

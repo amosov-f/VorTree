@@ -22,7 +22,7 @@ public class CenteredView extends Component {
     protected List<Item> items = new ArrayList<Item>();
 
     public enum DelaunayGraphViewMode {
-        DEFAULT, NO_TRIANGLES, CREEP, CREEP_ONLY, CIRCUM, CREEP_CIRCUM, NO_CREEP, BORDER
+        DEFAULT, NO_TRIANGLES, CREEP, CREEP_ONLY, CIRCUM, CREEP_CIRCUM, NO_CREEP, BORDER, NO_TRIANGLES_CIRCUM
     }
 
     public enum TriangleViewMode {
@@ -370,7 +370,12 @@ public class CenteredView extends Component {
                     }
 
                     return;
-
+                case NO_TRIANGLES_CIRCUM:
+                    ballPainter = new BallPainter(Color.RED);
+                    for (Simplex s : graph.getPointSimplexes()) {
+                        ballPainter.paint(new Ball(s.getVertices()), g);
+                    }
+                    break;
             }
 
 

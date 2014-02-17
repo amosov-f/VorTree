@@ -98,25 +98,25 @@
         
         \begin{frame}{Диаграмма Вороного}
             \begin{center}
-	            \includegraphics[scale = 0.33]{voronoi-1.png}
+	            \includegraphics[scale=0.295]{voronoi-1.png}
 	        \end{center}       
         \end{frame}
         
         \begin{frame}{Диаграмма Вороного}
             \begin{center}
-	            \includegraphics[scale = 0.33]{voronoi-2.png}
+	            \includegraphics[scale=0.295]{voronoi-2.png}
 	        \end{center}       
         \end{frame}
         
         \begin{frame}{Граф Делоне}
             \begin{center}
-	            \includegraphics[scale = 0.33]{voronoi-3.png}
+	            \includegraphics[scale=0.295]{voronoi-3.png}
 	        \end{center}       
         \end{frame}
         
         \begin{frame}{Основное свойство графа Делоне}
             \begin{center}
-	            \includegraphics[scale = 0.33]{voronoi-4.png}
+	            \includegraphics[scale=0.295]{voronoi-4.png}
 	        \end{center}       
         \end{frame}
         
@@ -257,7 +257,7 @@
         \end{frame}
         
         \begin{frame}{На практике}
-            Ускорение наивного алгоритма
+            Ускорение наивного алгоритма  ($n^4$ vs $n\log n$)
             \begin{center}
                 \includegraphics[scale=0.4]{comparison.png}\\
                 Время работы от размера задачи   
@@ -297,11 +297,14 @@
         \begin{frame}{Результаты}
             Разработан алгоритм построения многомерного VoR-дерева
             \begin{itemize}
-                \item Асимптотически эффективный 
+                \item Асимптотически эффективный
+                \item Простой в реализации
                 \item Хорошо параллелится
-                \item Реализован на Java
-                \item Реализован с использованием MapReduce
-                \item Реализован с использованием MapReduce рекурсивно
+            \end{itemize}
+            Реализован
+            \begin{itemize}
+                \item На Java
+                \item С использованием MapReduce
             \end{itemize}
             До $10^9$ точек еще далеко, но прототип работает
         \end{frame}
