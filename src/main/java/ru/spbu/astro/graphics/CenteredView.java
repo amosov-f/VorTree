@@ -5,6 +5,7 @@ import ru.spbu.astro.delaunay.WalkableDelaunayGraphBuilder;
 import ru.spbu.astro.model.*;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.model.Rectangle;
+import ru.spbu.astro.search.AbstractVorTreeBuilder;
 import ru.spbu.astro.search.VorTreeBuilder;
 import ru.spbu.astro.utility.ColorGenerator;
 
@@ -23,6 +24,10 @@ public class CenteredView extends Component {
 
     public enum DelaunayGraphViewMode {
         DEFAULT, NO_TRIANGLES, CREEP, CREEP_ONLY, CIRCUM, CREEP_CIRCUM, NO_CREEP, BORDER, NO_TRIANGLES_CIRCUM
+    }
+
+    public enum VorTreeViewMode {
+        VORONOI, DELAUNAY
     }
 
     public enum TriangleViewMode {
@@ -86,8 +91,18 @@ public class CenteredView extends Component {
     }
 
     public class RectanglePainter extends AbstractPainter<Rectangle> {
-        private Color color =  new Color(100, 200, 100);
-        private int width = 1;
+        private final Color color;
+        private final int width;
+
+        public RectanglePainter() {
+            color =  new Color(100, 200, 100);
+            width = 1;
+        }
+
+        public RectanglePainter(Color color, int width) {
+            this.color = color;
+            this.width = width;
+        }
 
         @Override
         public void paint(Rectangle rect, Graphics g) {
@@ -176,10 +191,6 @@ public class CenteredView extends Component {
                     final Point p = fromWindow(new java.awt.Point(x, y));
                     int NN = diagram.getNearestNeighbor(p);
 
-                    if (NN != 0 && NN != 1 && NN != 2) {
-                        System.out.println("!!!");
-                    }
-                    //System.out.println(ColorGenerator.next(diagram.getNearestNeighbor(p)));
                     final PointPainter pointPainter = new PointPainter(
                             ColorGenerator.next(diagram.getNearestNeighbor(p)),
                             2
@@ -373,7 +384,9 @@ public class CenteredView extends Component {
                 case NO_TRIANGLES_CIRCUM:
                     ballPainter = new BallPainter(Color.RED);
                     for (Simplex s : graph.getPointSimplexes()) {
-                        ballPainter.paint(new Ball(s.getVertices()), g);
+                        if (new Random().nextInt(5) == 0) {
+                            ballPainter.paint(new Ball(s.getVertices()), g);
+                        }
                     }
                     break;
             }
@@ -386,6 +399,71 @@ public class CenteredView extends Component {
                 linePainter.paint(edge, g);
                 pointPainter.paint(edge.getFirst(), g);
                 pointPainter.paint(edge.getSecond(), g);
+            }
+        }
+    }
+
+    public class VorTreePainter extends AbstractPainter<AbstractVorTreeBuilder.AbstractVorTree> {
+
+        private final VorTreeViewMode mode;
+
+        public VorTreePainter() {
+            mode = VorTreeViewMode.VORONOI;
+        }
+
+        public VorTreePainter(final VorTreeViewMode mode) {
+            this.mode = mode;
+        }
+
+        @Override
+        public void paint(final AbstractVorTreeBuilder.AbstractVorTree t, final Graphics g) {
+            switch (mode) {
+                case VORONOI:
+                    final VoronoiDiagram diagram = new VoronoiDiagram(t.getPoints());
+                    new VoronoiDiagramPainter().paint(diagram, g);
+                    break;
+                case DELAUNAY:
+                    new DelaunayGraphPainter().paint(t, g);
+                    break;
+            }
+
+            new RTreePainter().paint(t.getRTree(), g);
+
+            for (final Point p : t.getPoints()) {
+                final PointPainter pointPainter = new PointPainter(4);
+                pointPainter.paint(p, g);
+            }
+        }
+
+    }
+
+    public class RTreePainter extends AbstractPainter<AbstractVorTreeBuilder.AbstractVorTree.RTree> {
+
+        private final int width;
+
+        public RTreePainter() {
+            width = 5;
+        }
+
+        public RTreePainter(int width) {
+            this.width = width;
+        }
+
+        @Override
+        public void paint(AbstractVorTreeBuilder.AbstractVorTree.RTree t, Graphics g) {
+            paint(t, 0, g);
+            for (final Point p : t.getPoints()) {
+                final PointPainter pointPainter = new PointPainter(3);
+                pointPainter.paint(p, g);
+            }
+        }
+
+        private void paint(AbstractVorTreeBuilder.AbstractVorTree.RTree t, int level, Graphics g) {
+            System.out.println(level);
+            RectanglePainter rectanglePainter = new RectanglePainter(ColorGenerator.next(level * 7), Math.max(width - level, 0));
+            rectanglePainter.paint(t.cover, g);
+            for (AbstractVorTreeBuilder.AbstractVorTree.RTree son : t.sons) {
+                paint(son, level + 1, g);
             }
         }
     }
@@ -430,11 +508,17 @@ public class CenteredView extends Component {
         if (f instanceof Simplex) {
             return new TrianglePainter();
         }
+        if (f instanceof AbstractVorTreeBuilder.AbstractVorTree) {
+            return new VorTreePainter();
+        }
         if (f instanceof AbstractDelaunayGraphBuilder.AbstractDelaunayGraph) {
             return new DelaunayGraphPainter();
         }
         if (f instanceof VoronoiDiagram) {
             return new VoronoiDiagramPainter();
+        }
+        if (f instanceof AbstractVorTreeBuilder.AbstractVorTree.RTree) {
+            return new RTreePainter();
         }
         return null;
     }

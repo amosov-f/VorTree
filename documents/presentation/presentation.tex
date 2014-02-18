@@ -86,13 +86,13 @@
             \begin{itemize}       
                 \item Евклидова метрика --- ?
                 \item $1$--NN запрос за $O(\log n)$
-                \item $k$--NN запрос за $O(k + \log n)$
+                \item $k$--NN запрос за $O(\log n + k)$
             \end{itemize}                
         \end{frame}
         
         \begin{frame}{R-дерево}
             \begin{center}
-	            \includegraphics[scale = 0.25]{r-tree.png}
+	            \includegraphics[scale = 0.295]{r-tree.png}
 	        \end{center}  
         \end{frame}
         
@@ -108,7 +108,7 @@
 	        \end{center}       
         \end{frame}
         
-        \begin{frame}{Граф Делоне}
+        \begin{frame}{Граф Делоне (Триангуляция Делоне)}
             \begin{center}
 	            \includegraphics[scale=0.295]{voronoi-3.png}
 	        \end{center}       
@@ -141,7 +141,7 @@
             \begin{itemize}
                 \item offline
                 \item Требование распараллеленности $\Longrightarrow$ \\ <<разделяй и властвуй>> 
-                \item Построить R-дерево за $O(n)$ --- очевидно
+                \item Построить R-дерево за $O(n \log n)$ --- очевидно
                 \item Построить граф Делоне за $O(n \log n)$, следуя парадигме <<разделяй и властвуй>> --- ?
             \end{itemize}
         \end{frame}
@@ -259,7 +259,7 @@
         \begin{frame}{На практике}
             Ускорение наивного алгоритма  ($n^4$ vs $n\log n$)
             \begin{center}
-                \includegraphics[scale=0.4]{comparison.png}\\
+                \includegraphics[scale=0.35]{comparison.png}\\
                 Время работы от размера задачи   
             \end{center}  
                   
@@ -275,7 +275,7 @@
         
         \begin{frame}{Распараллеливание 2}
             \begin{center}
-                \includegraphics[scale=0.295]{5.png}
+                \includegraphics[scale=0.295]{12.png}
             \end{center}            
         \end{frame}
         

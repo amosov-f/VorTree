@@ -4,6 +4,7 @@ import ru.spbu.astro.Message;
 import ru.spbu.astro.delaunay.AbstractDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.NativeDelaunayGraphBuilder;
 import ru.spbu.astro.delaunay.WalkableDelaunayGraphBuilder;
+import ru.spbu.astro.graphics.Framable;
 import ru.spbu.astro.model.Ball;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.model.Rectangle;
@@ -77,6 +78,10 @@ public abstract class AbstractVorTreeBuilder extends WalkableDelaunayGraphBuilde
             rTree.sons.add(t.rTree);
         }
 
+        public RTree getRTree() {
+            return rTree;
+        }
+
         public Message.AbstractVorTree toAbstractVorTreeMessage() {
             final Message.AbstractVorTree.Builder builder = Message.AbstractVorTree.newBuilder();
             builder.setWalkableDelaunayGraph(super.toWalkableDelaunayGraphMessage());
@@ -84,8 +89,8 @@ public abstract class AbstractVorTreeBuilder extends WalkableDelaunayGraphBuilde
             return builder.build();
         }
 
-        protected class RTree implements Index {
-            private final Rectangle cover;
+        public class RTree implements Index, Framable {
+            public final Rectangle cover;
             private final Set<Integer> pointIds;
 
             public final List<RTree> sons;
@@ -106,6 +111,10 @@ public abstract class AbstractVorTreeBuilder extends WalkableDelaunayGraphBuilde
                 this.cover = cover;
                 this.pointIds = new HashSet<>(pointIds);
                 this.sons = new ArrayList<>(sons);
+            }
+
+            public List<Point> getPoints() {
+                return get(pointIds);
             }
 
             public RTree(Message.AbstractVorTree.RTree message) {
@@ -148,6 +157,11 @@ public abstract class AbstractVorTreeBuilder extends WalkableDelaunayGraphBuilde
                     }
                 }
                 return -1;
+            }
+
+            @Override
+            public Rectangle getFrameRectangle() {
+                return cover;
             }
 
             public Message.AbstractVorTree.RTree toMessage() {

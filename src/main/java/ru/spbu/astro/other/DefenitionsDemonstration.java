@@ -5,6 +5,7 @@ import ru.spbu.astro.graphics.ClickableView;
 import ru.spbu.astro.graphics.View;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.model.VoronoiDiagram;
+import ru.spbu.astro.search.AbstractVorTreeBuilder;
 import ru.spbu.astro.search.VorTreeBuilder;
 import ru.spbu.astro.utility.PointGenerator;
 
@@ -20,6 +21,31 @@ public class DefenitionsDemonstration {
     private static final int HEIGHT = 660;
 
     private static final int N = 50;
+
+    private static class Figure0 extends ClickableView {
+
+        public Figure0() {
+            setSize(DefenitionsDemonstration.WIDTH, DefenitionsDemonstration.HEIGHT);
+            setBackground(Color.WHITE);
+            build();
+        }
+
+        @Override
+        public void build() {
+
+            final List<Point> points;
+            try {
+                points = getPoints();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                return;
+            }
+
+            AbstractVorTreeBuilder.AbstractVorTree t = new VorTreeBuilder(points).build(3);
+
+            add(t.getRTree());
+        }
+    }
 
     public static class Figure1 extends ClickableView {
 

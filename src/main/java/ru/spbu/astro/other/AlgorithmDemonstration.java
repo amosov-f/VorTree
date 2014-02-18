@@ -10,6 +10,7 @@ import ru.spbu.astro.model.Graph;
 import ru.spbu.astro.model.Line;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.model.VoronoiDiagram;
+import ru.spbu.astro.search.AbstractVorTreeBuilder;
 import ru.spbu.astro.search.VorTreeBuilder;
 import ru.spbu.astro.utility.ColorGenerator;
 import ru.spbu.astro.utility.PointGenerator;
@@ -364,6 +365,36 @@ public class AlgorithmDemonstration {
         }
     }
 
+    public static class Figure12 extends ClickableView {
+
+        public Figure12() {
+            setSize(AlgorithmDemonstration.WIDTH, AlgorithmDemonstration.HEIGHT);
+            setBackground(Color.WHITE);
+            build();
+        }
+
+        @Override
+        public void build() {
+            final List<Point> points;
+            try {
+                points = getPoints();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                return;
+            }
+
+            for (AbstractDelaunayGraphBuilder.AbstractDelaunayGraph son : split(points)) {
+                add(son, new DelaunayGraphPainter());
+            }
+
+            for (AbstractDelaunayGraphBuilder.AbstractDelaunayGraph son : split(points)) {
+                AbstractVorTreeBuilder.AbstractVorTree t = (AbstractVorTreeBuilder.AbstractVorTree) son;
+                add(t.getRTree(), new RTreePainter(4));
+            }
+
+        }
+    }
+
     private static List<AbstractDelaunayGraphBuilder.AbstractDelaunayGraph> split(final List<Point> points) {
         VoronoiDiagram diagram = new VoronoiDiagram(points.subList(0, DIVISION));
 
@@ -376,11 +407,11 @@ public class AlgorithmDemonstration {
             cells.get(diagram.getNearestNeighbor(points.get(i))).add(i);
         }
 
-        AbstractDelaunayGraphBuilder builder = new VorTreeBuilder(points);
+        AbstractVorTreeBuilder builder = new VorTreeBuilder(points);
 
         List<AbstractDelaunayGraphBuilder.AbstractDelaunayGraph> result = new ArrayList<>();
         for (List<Integer> cell : cells) {
-            result.add(builder.build(cell));
+            result.add(builder.build(cell, 3));
         }
 
         return result;
@@ -408,7 +439,7 @@ public class AlgorithmDemonstration {
     }
 
     public static void main(final String[] args) {
-        new View.Window(new Figure2());
+        new View.Window(new Figure12());
     }
 
 }

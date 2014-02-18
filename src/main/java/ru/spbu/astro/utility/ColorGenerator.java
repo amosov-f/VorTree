@@ -22,6 +22,7 @@ public final class ColorGenerator {
     }
 
     public static Color next(int hash) {
+        hash = Math.abs(hash);
         return new Color((hash * 97 + 120) % 256, (hash * 19 + 120) % 256, (hash * 119 + 170) % 256);
     }
 

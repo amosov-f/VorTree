@@ -20,7 +20,7 @@ import java.util.Scanner;
 public class AlgorithmsComparisonEngine {
 
     private static final int LN = 1;
-    private static final int RN = 86;
+    private static final int RN = 100;
 
     private static final int T = 5;
 
