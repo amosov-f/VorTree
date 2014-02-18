@@ -30,21 +30,21 @@ public class VorTreeVisualizerEngine {
 
         @Override
         public void build() {
-            final List<Point> points = PointGenerator.nextUniforms(10, 1000 * getWidth(), 1000 * getHeight());
+            final List<Point> points = PointGenerator.nextUniforms(100, 1000 * getWidth(), 1000 * getHeight());
 
             final AbstractDelaunayGraphBuilder builder1 = new VisadDelaunayGraphBuilder(points);
-            final AbstractVorTreeBuilder builder2 = new MapReduceVorTreeBuilder(points);
+            final AbstractVorTreeBuilder builder2 = new VorTreeBuilder(points);
 
             long t1 = System.currentTimeMillis();
             final AbstractDelaunayGraphBuilder.AbstractDelaunayGraph graph1 = builder1.build();
             long t2 = System.currentTimeMillis();
-            final AbstractDelaunayGraphBuilder.AbstractDelaunayGraph graph2 = builder2.build(2);
+            final AbstractDelaunayGraphBuilder.AbstractDelaunayGraph graph2 = builder2.build();
             long t3 = System.currentTimeMillis();
 
             System.out.println("Visad time = " + (t2 - t1) / 1000);
-            System.out.println("MapReduce VoR-tree time = " + (t3 - t2) / 1000);
+            System.out.println("VoR-tree time = " + (t3 - t2) / 1000);
 
-            add(graph2);
+            add(graph2, new DelaunayGraphPainter());
         }
 
     }

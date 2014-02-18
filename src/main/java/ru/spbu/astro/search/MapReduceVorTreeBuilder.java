@@ -29,10 +29,10 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
         super(points);
 
         try {
-            FileUtils.deleteDirectory(new File("input"));
-            FileUtils.deleteDirectory(new File("output"));
-            new File("input").mkdir();
-            new File("output").mkdir();
+            FileUtils.deleteDirectory(new File("clipboard/input"));
+            FileUtils.deleteDirectory(new File("clipboard/output"));
+            new File("clipboard/input").mkdirs();
+            new File("clipboard/output").mkdirs();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -134,7 +134,7 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
             ++fileNumber;
             int currentFileNumber = fileNumber;
 
-            PrintWriter fout = new PrintWriter(new FileOutputStream("input/" + currentFileNumber));
+            PrintWriter fout = new PrintWriter(new FileOutputStream("clipboard/input/" + currentFileNumber));
             for (final List<Integer> cell : cells) {
                 fout.println(Joiner.on(' ').join(cell));
             }
@@ -158,14 +158,14 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
             job.setOutputKeyClass(IntWritable.class);
             job.setOutputValueClass(BytesWritable.class);
 
-            FileInputFormat.addInputPath(job, new Path("input/" + currentFileNumber));
-            FileOutputFormat.setOutputPath(job, new Path("output/" + currentFileNumber));
+            FileInputFormat.addInputPath(job, new Path("clipboard/input/" + currentFileNumber));
+            FileOutputFormat.setOutputPath(job, new Path("clipboard/output/" + currentFileNumber));
 
             job.waitForCompletion(true);
 
             final SequenceFile.Reader reader = new SequenceFile.Reader(
                     FileSystem.get(conf),
-                    new Path("output/" + currentFileNumber + "/part-m-00000"),
+                    new Path("clipboard/output/" + currentFileNumber + "/part-m-00000"),
                     conf
             );
 
