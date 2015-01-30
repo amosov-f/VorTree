@@ -3,7 +3,8 @@ package ru.spbu.astro.search;
 import com.google.common.base.Joiner;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.*;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
@@ -12,20 +13,23 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import ru.spbu.astro.Message;
 import ru.spbu.astro.model.Graph;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.search.mapreduce.DelaunayMapper;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 
 public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
-
     private static int fileNumber = 0;
 
-    public MapReduceVorTreeBuilder(final Collection<Point> points) {
+    public MapReduceVorTreeBuilder(@NotNull final Collection<Point> points) {
         super(points);
 
         try {
@@ -34,16 +38,17 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
             new File("clipboard/input").mkdirs();
             new File("clipboard/output").mkdirs();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
-    public MapReduceVorTreeBuilder(final Map<Integer, Point> id2point) {
+    public MapReduceVorTreeBuilder(@NotNull final Map<Integer, Point> id2point) {
         super(id2point);
     }
 
+    @NotNull
     @Override
-    public MapReduceVorTree build(final Collection<Integer> pointIds, int division) {
+    public MapReduceVorTree build(@NotNull final Collection<Integer> pointIds, int division) {
         return new MapReduceVorTree(pointIds, division);
     }
 
@@ -130,11 +135,11 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
             }
         }
 
-        public List<AbstractVorTree> processMapReduce(final Collection<List<Integer>> cells) throws Exception {
+        public List<AbstractVorTree> processMapReduce(@NotNull final Collection<List<Integer>> cells) throws Exception {
             ++fileNumber;
-            int currentFileNumber = fileNumber;
+            final int currentFileNumber = fileNumber;
 
-            PrintWriter fout = new PrintWriter(new FileOutputStream("clipboard/input/" + currentFileNumber));
+            final PrintWriter fout = new PrintWriter(new FileOutputStream("clipboard/input/" + currentFileNumber));
             for (final List<Integer> cell : cells) {
                 fout.println(Joiner.on(' ').join(cell));
             }
@@ -174,7 +179,7 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
 
             final List<AbstractVorTree> sons = new ArrayList<>();
             while (reader.next(key, value)) {
-                byte[] b = Arrays.copyOf(value.getBytes(), key.get());
+                final byte[] b = Arrays.copyOf(value.getBytes(), key.get());
                 final Message.AbstractVorTree message = Message.AbstractVorTree.parseFrom(b);
 
                 final AbstractVorTree t = build(message);
@@ -184,7 +189,5 @@ public final class MapReduceVorTreeBuilder extends AbstractVorTreeBuilder {
 
             return sons;
         }
-
     }
-
 }

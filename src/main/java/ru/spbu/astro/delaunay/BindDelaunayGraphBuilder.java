@@ -2,6 +2,7 @@ package ru.spbu.astro.delaunay;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 import ru.spbu.astro.model.Graph;
 import ru.spbu.astro.model.Point;
 
@@ -9,66 +10,67 @@ import java.util.*;
 
 @Deprecated
 public final class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder {
-
     private final int division;
+    @NotNull
     private final NativeDelaunayGraphBuilder nativeDelaunayGraphBuilder;
 
-    public BindDelaunayGraphBuilder(final Collection<Point> points, int division) {
+    public BindDelaunayGraphBuilder(@NotNull final Collection<Point> points, final int division) {
         super(points);
         this.division = division;
         nativeDelaunayGraphBuilder = new NativeDelaunayGraphBuilder(id2point);
     }
 
-    public BindDelaunayGraphBuilder(final Map<Integer, Point> id2point, int division) {
+    public BindDelaunayGraphBuilder(@NotNull final Map<Integer, Point> id2point, final int division) {
         super(id2point);
         this.division = division;
         nativeDelaunayGraphBuilder = new NativeDelaunayGraphBuilder(id2point);
     }
 
+    @NotNull
     @Override
-    public BindDelaunayGraph build(Collection<Integer> pointIds) {
+    public BindDelaunayGraph build(@NotNull final Collection<Integer> pointIds) {
         return new BindDelaunayGraph(pointIds);
     }
 
-    public Pair<Collection<AbstractDelaunayGraph>, Map<Integer, Integer>> split(final Collection<Integer> pointIds, int m, int level) {
-
-        List<Integer> perm = new ArrayList<>();
-        for (Integer pointId : pointIds) {
+    public Pair<Collection<AbstractDelaunayGraph>, Map<Integer, Integer>> split(@NotNull final Collection<Integer> pointIds,
+                                                                                final int m,
+                                                                                final int level) {
+        final List<Integer> perm = new ArrayList<>();
+        for (final Integer pointId : pointIds) {
             perm.add(pointId);
         }
         Collections.shuffle(perm);
 
-
-        List<Integer> pivotIds = new ArrayList<>();
+        final List<Integer> pivotIds = new ArrayList<>();
         for (int i = 0; i < Math.min(m, perm.size()); ++i) {
             pivotIds.add(perm.get(i));
         }
 
-        Map<Integer, Integer> pointId2pivotId = new HashMap<>();
-        for (Integer pointId : pointIds) {
+        final Map<Integer, Integer> pointId2pivotId = new HashMap<>();
+        for (final Integer pointId : pointIds) {
             pointId2pivotId.put(pointId, pivotIds.get(0));
-            Point p = id2point.get(pointId);
-            for (Integer pivotId : pivotIds) {
+            final Point p = id2point.get(pointId);
+            for (final Integer pivotId : pivotIds) {
                 if (p.distance2to(id2point.get(pivotId)) < p.distance2to(id2point.get(pointId2pivotId.get(pointId)))) {
                     pointId2pivotId.put(pointId, pivotId);
                 }
             }
         }
 
-        Map<Integer, Collection<Integer>> pivotId2cell = new HashMap<>();
+        final Map<Integer, Collection<Integer>> pivotId2cell = new HashMap<>();
 
-        for (Map.Entry<Integer, Integer> entry : pointId2pivotId.entrySet()) {
-            int pointId = entry.getKey();
-            int pivotId = entry.getValue();
+        for (final Map.Entry<Integer, Integer> entry : pointId2pivotId.entrySet()) {
+            final int pointId = entry.getKey();
+            final int pivotId = entry.getValue();
             if (!pivotId2cell.containsKey(pivotId)) {
                 pivotId2cell.put(pivotId, new HashSet<Integer>());
             }
             pivotId2cell.get(pivotId).add(pointId);
         }
 
-        Collection<AbstractDelaunayGraph> delaunayGraphs = new ArrayList<>();
+        final Collection<AbstractDelaunayGraph> delaunayGraphs = new ArrayList<>();
 
-        for (Collection<Integer> cell : pivotId2cell.values()) {
+        for (final Collection<Integer> cell : pivotId2cell.values()) {
             delaunayGraphs.add(build(cell));
         }
 
@@ -76,24 +78,23 @@ public final class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder
     }
 
     public class BindDelaunayGraph extends WalkableDelaunayGraph {
-
-        public BindDelaunayGraph(Collection<Integer> pointIds) {
+        public BindDelaunayGraph(@NotNull final Collection<Integer> pointIds) {
             this(pointIds, 0);
         }
 
-        public BindDelaunayGraph(Collection<Integer> pointIds, int level) {
+        public BindDelaunayGraph(@NotNull final Collection<Integer> pointIds, final int level) {
             super(pointIds);
 
             if (pointIds.size() <= dim()) {
                 return;
             }
 
-            Pair<Collection<AbstractDelaunayGraph>, Map<Integer, Integer>> pair = split(pointIds, division, level);
-            Map<Integer, Integer> pointId2pivotId = pair.getValue();
+            final Pair<Collection<AbstractDelaunayGraph>, Map<Integer, Integer>> pair = split(pointIds, division, level);
+            final Map<Integer, Integer> pointId2pivotId = pair.getValue();
 
-            Collection<Integer> bindPointIds = new HashSet();
-            Graph removedGraph = new Graph();
-            for (AbstractDelaunayGraph delaunayGraph : pair.getKey()) {
+            final Collection<Integer> bindPointIds = new HashSet<>();
+            final Graph removedGraph = new Graph();
+            for (final AbstractDelaunayGraph delaunayGraph : pair.getKey()) {
                 //Collection<Integer> outsidePointIds = new ArrayList(pointIds);
                 //outsidePointIds.removeAll(delaunayGraph.pointIds);
 
@@ -104,17 +105,17 @@ public final class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder
 
             bindPointIds.addAll(removedGraph.getVertices());
 
-            AbstractDelaunayGraph bindDelanayGraph;
+            final AbstractDelaunayGraph bindDelanayGraph;
             if (bindPointIds.size() != pointIds.size()) {
                 bindDelanayGraph = build(bindPointIds);
             } else {
                 bindDelanayGraph = nativeDelaunayGraphBuilder.build(bindPointIds);
             }
 
-            Graph newEdges = new Graph();
-            for (Edge edge : bindDelanayGraph) {
-                int u = edge.getFirst();
-                int v = edge.getSecond();
+            final Graph newEdges = new Graph();
+            for (final Edge edge : bindDelanayGraph) {
+                final int u = edge.getFirst();
+                final int v = edge.getSecond();
                 if (!pointId2pivotId.get(u).equals(pointId2pivotId.get(v))) {
                     addEdge(u, v);
                     newEdges.addEdge(u, v);
@@ -123,9 +124,9 @@ public final class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder
                 }
             }
 
-            for (Simplex simplex : bindDelanayGraph.getSimplexes()) {
+            for (final Simplex simplex : bindDelanayGraph.getSimplexes()) {
                 if (containsGraph(simplex.toGraph())) {
-                    for (Edge edge : newEdges) {
+                    for (final Edge edge : newEdges) {
                         if (simplex.toGraph().containsEdge(edge)) {
                             addSimplex(simplex);
                             break;
@@ -134,7 +135,5 @@ public final class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder
                 }
             }
         }
-
     }
-
 }

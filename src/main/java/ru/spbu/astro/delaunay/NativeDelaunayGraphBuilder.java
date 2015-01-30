@@ -1,31 +1,32 @@
 package ru.spbu.astro.delaunay;
 
+import org.jetbrains.annotations.NotNull;
 import ru.spbu.astro.model.Point;
 
 import java.util.*;
 
 public final class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuilder {
-
     public static final Map<Integer, Integer> COUNT = new HashMap<>();
 
-    public NativeDelaunayGraphBuilder(final Collection<Point> points) {
+    public NativeDelaunayGraphBuilder(@NotNull final Collection<Point> points) {
         super(points);
     }
 
-    public NativeDelaunayGraphBuilder(final Map<Integer, Point> id2point) {
+    public NativeDelaunayGraphBuilder(@NotNull final Map<Integer, Point> id2point) {
         super(id2point);
     }
 
+    @NotNull
     @Override
-    public NativeDelaunayGraph build(final Collection<Integer> pointIds) {
+    public NativeDelaunayGraph build(@NotNull final Collection<Integer> pointIds) {
         return new NativeDelaunayGraph(pointIds);
     }
 
-    public class NativeDelaunayGraph extends AbstractDelaunayGraph {
-
+    public final class NativeDelaunayGraph extends AbstractDelaunayGraph {
+        @NotNull
         private final List<Integer> pointIds;
 
-        NativeDelaunayGraph(final Collection<Integer> pointIds) {
+        NativeDelaunayGraph(@NotNull final Collection<Integer> pointIds) {
             super(pointIds);
             this.pointIds = new ArrayList<>(pointIds);
 
@@ -47,7 +48,7 @@ public final class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuild
             build(new BitSet(pointIds.size()), 0, dim() + 1);
         }
 
-        private void build(final BitSet mask, int pos, int rem) {
+        private void build(@NotNull final BitSet mask, final int pos, final int rem) {
             if (rem == 0) {
                 final List<Integer> vertices = new ArrayList<>();
                 for (int i = 0; i < mask.size(); ++i) {
@@ -70,7 +71,5 @@ public final class NativeDelaunayGraphBuilder extends AbstractDelaunayGraphBuild
             mask.set(pos, false);
             build(mask, pos + 1, rem);
         }
-
     }
-
 }

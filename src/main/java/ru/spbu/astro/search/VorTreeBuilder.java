@@ -1,28 +1,28 @@
 package ru.spbu.astro.search;
 
+import org.jetbrains.annotations.NotNull;
 import ru.spbu.astro.model.Graph;
 import ru.spbu.astro.model.Point;
 
 import java.util.*;
 
 public final class VorTreeBuilder extends AbstractVorTreeBuilder {
-
-    public VorTreeBuilder(final Collection<Point> points) {
+    public VorTreeBuilder(@NotNull final Collection<Point> points) {
         super(points);
     }
 
-    public VorTreeBuilder(final Map<Integer, Point> points) {
+    public VorTreeBuilder(@NotNull final Map<Integer, Point> points) {
         super(points);
     }
 
+    @NotNull
     @Override
-    public VorTree build(final Collection<Integer> pointIds, int division) {
+    public VorTree build(@NotNull final Collection<Integer> pointIds, int division) {
         return new VorTree(pointIds, division);
     }
 
     public class VorTree extends AbstractVorTree {
-
-        public VorTree(final Collection<Integer> pointIds, int division) {
+        public VorTree(@NotNull final Collection<Integer> pointIds, final int division) {
             super(pointIds);
 
             if (pointIds.size() <= dim()) {
@@ -36,18 +36,18 @@ public final class VorTreeBuilder extends AbstractVorTreeBuilder {
                 final List<Integer> pivotIds = pointIdList.subList(0, Math.min(division, pointIdList.size()));
 
                 final VorTree pivotVorTree = (VorTree) build(pivotIds);
-                for (int pointId : pointIds) {
+                for (final int pointId : pointIds) {
                     pointId2pivotId.put(pointId, pivotVorTree.getNearestNeighbor(id2point.get(pointId)));
                 }
             } else {
-                for (int pointId : pointIds) {
+                for (final int pointId : pointIds) {
                     pointId2pivotId.put(pointId, pointId);
                 }
             }
 
             final Map<Integer, List<Integer>> pivotId2pointIds = new HashMap<>();
-            for (int pointId : pointId2pivotId.keySet()) {
-                int pivotId = pointId2pivotId.get(pointId);
+            for (final int pointId : pointId2pivotId.keySet()) {
+                final int pivotId = pointId2pivotId.get(pointId);
                 if (!pivotId2pointIds.containsKey(pivotId)) {
                     pivotId2pointIds.put(pivotId, new ArrayList<Integer>());
                 }
@@ -81,8 +81,8 @@ public final class VorTreeBuilder extends AbstractVorTreeBuilder {
 
             final Graph newEdges = new Graph();
             for (final Edge edge : bindDelanayGraph) {
-                int u = edge.getFirst();
-                int v = edge.getSecond();
+                final int u = edge.getFirst();
+                final int v = edge.getSecond();
                 if (!pointId2pivotId.get(u).equals(pointId2pivotId.get(v))) {
                     addEdge(u, v);
                     newEdges.addEdge(u, v);
@@ -102,9 +102,5 @@ public final class VorTreeBuilder extends AbstractVorTreeBuilder {
                 }
             }
         }
-
-
-
     }
-
 }
