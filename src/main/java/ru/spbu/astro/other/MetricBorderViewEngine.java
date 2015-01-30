@@ -1,5 +1,6 @@
 package ru.spbu.astro.other;
 
+import org.jetbrains.annotations.NotNull;
 import ru.spbu.astro.graphics.ClickableView;
 import ru.spbu.astro.model.Point;
 import ru.spbu.astro.utility.PointGenerator;
@@ -10,9 +11,10 @@ import java.util.Collection;
 
 @Deprecated
 public class MetricBorderViewEngine extends ClickableView {
-
-    Point p1;
-    Point p2;
+    @NotNull
+    private Point p1;
+    @NotNull
+    private Point p2;
 
     public MetricBorderViewEngine() {
         super();
@@ -22,16 +24,15 @@ public class MetricBorderViewEngine extends ClickableView {
 
     public void build() {
         Collection<Point> points = PointGenerator.nextUniforms(2, getWidth(), getHeight());
-        p1 = new ArrayList<Point>(points).get(0);
-        p2 = new ArrayList<Point>(points).get(1);
+        p1 = new ArrayList<>(points).get(0);
+        p2 = new ArrayList<>(points).get(1);
     }
 
     @Override
-    public void paint(Graphics g) {
-
+    public void paint(@NotNull final Graphics g) {
         for (int x = 0; x < getWidth(); ++x) {
             for (int y = 0; y < getHeight(); ++y) {
-                Point p = new Point(x, y);
+                final Point p = new Point(x, y);
                 g.setColor(new Color(100, 150, 0));
                 if (distance(p, p1) < distance(p, p2)) {
                     g.setColor(new Color(200, 100, 0));
@@ -46,7 +47,7 @@ public class MetricBorderViewEngine extends ClickableView {
         g.fillOval((int) p2.getX() - 4, (int) p2.getY() - 4, 8, 8);
     }
 
-    public static double distance(Point p1, Point p2) {
+    public static double distance(@NotNull final Point p1, @NotNull final Point p2) {
         double dist = 0;
         for (int i = 0; i < p1.dim(); ++i) {
             dist += Math.abs(p1.get(i) - p2.get(i));
@@ -54,9 +55,8 @@ public class MetricBorderViewEngine extends ClickableView {
         return dist;
     }
 
-    public static void main(String[] args) {
+    public static void main(@NotNull final String[] args) {
         ClickableView frame = new MetricBorderViewEngine();
         frame.setVisible(true);
     }
-
 }

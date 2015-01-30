@@ -1,8 +1,10 @@
 package ru.spbu.astro.graphics;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.*;
 
 public interface Painter<T> {
-    void paint(T object, Graphics g);
-    void sign(T object, String signature, Graphics g);
+    void paint(@NotNull T object, @NotNull Graphics g);
+    void sign(@NotNull T object, @NotNull String signature, @NotNull Graphics g);
 }

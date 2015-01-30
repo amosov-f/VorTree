@@ -9,17 +9,29 @@
     <artifactId>VorTree</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <!--properties>
-        <proto.folder>${basedir}/src/main/proto</proto.folder>
-        <google.protobuf.version>2.4.1</google.protobuf.version>
-    </properties-->
-
     <dependencies>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+            <version>3.2</version>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
             <version>2.2.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
@@ -35,16 +47,7 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.18</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-math3</artifactId>
-            <version>3.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.3.2</version>
-        </dependency>
+
         <dependency>
             <groupId>visad</groupId>
             <artifactId>delaunay</artifactId>
@@ -53,31 +56,24 @@
             <systemPath>${project.basedir}/lib/visad.jar</systemPath>
         </dependency>
         <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-            <version>2.5.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.math.plot</groupId>
             <artifactId>jmathplot</artifactId>
             <version>1.0.0</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/lib/jmathplot.jar</systemPath>
         </dependency>
+
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20090211</version>
         </dependency>
+        <dependency>
+            <groupId>com.intellij</groupId>
+            <artifactId>annotations</artifactId>
+            <version>12.0</version>
+        </dependency>
     </dependencies>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>protoc-plugin</id>
-            <url>http://sergei-ivanov.github.com/maven-protoc-plugin/repo/releases/</url>
-        </pluginRepository>
-    </pluginRepositories>
-
 
     <build>
         <plugins>
@@ -108,6 +104,13 @@
             </plugin>
         </plugins>
     </build>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>protoc-plugin</id>
+            <url>http://sergei-ivanov.github.com/maven-protoc-plugin/repo/releases/</url>
+        </pluginRepository>
+    </pluginRepositories>
 </project>
 
 
