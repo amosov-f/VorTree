@@ -1,6 +1,7 @@
 package ru.spbu.astro.delaunay;
 
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import ru.spbu.astro.model.Graph;
 import ru.spbu.astro.model.Point;
 
@@ -32,7 +33,7 @@ public final class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder
     public Pair<Collection<AbstractDelaunayGraph>, Map<Integer, Integer>> split(final Collection<Integer> pointIds, int m, int level) {
 
         List<Integer> perm = new ArrayList<>();
-        for (Integer pointId : pointIds)  {
+        for (Integer pointId : pointIds) {
             perm.add(pointId);
         }
         Collections.shuffle(perm);
@@ -43,7 +44,7 @@ public final class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder
             pivotIds.add(perm.get(i));
         }
 
-        Map<Integer, Integer> pointId2pivotId = new HashMap();
+        Map<Integer, Integer> pointId2pivotId = new HashMap<>();
         for (Integer pointId : pointIds) {
             pointId2pivotId.put(pointId, pivotIds.get(0));
             Point p = id2point.get(pointId);
@@ -54,24 +55,24 @@ public final class BindDelaunayGraphBuilder extends WalkableDelaunayGraphBuilder
             }
         }
 
-        Map<Integer, Collection<Integer>> pivotId2cell = new HashMap();
+        Map<Integer, Collection<Integer>> pivotId2cell = new HashMap<>();
 
         for (Map.Entry<Integer, Integer> entry : pointId2pivotId.entrySet()) {
             int pointId = entry.getKey();
             int pivotId = entry.getValue();
             if (!pivotId2cell.containsKey(pivotId)) {
-                pivotId2cell.put(pivotId, new HashSet());
+                pivotId2cell.put(pivotId, new HashSet<Integer>());
             }
             pivotId2cell.get(pivotId).add(pointId);
         }
 
-        Collection<AbstractDelaunayGraph> delaunayGraphs = new ArrayList();
+        Collection<AbstractDelaunayGraph> delaunayGraphs = new ArrayList<>();
 
         for (Collection<Integer> cell : pivotId2cell.values()) {
             delaunayGraphs.add(build(cell));
         }
 
-        return new Pair(delaunayGraphs, pointId2pivotId);
+        return new ImmutablePair<>(delaunayGraphs, pointId2pivotId);
     }
 
     public class BindDelaunayGraph extends WalkableDelaunayGraph {

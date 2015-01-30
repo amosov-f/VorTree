@@ -41,6 +41,11 @@
             <version>3.2</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.3.2</version>
+        </dependency>
+        <dependency>
             <groupId>visad</groupId>
             <artifactId>delaunay</artifactId>
             <version>1.0.0</version>
@@ -55,8 +60,9 @@
         <dependency>
             <groupId>org.math.plot</groupId>
             <artifactId>jmathplot</artifactId>
-            <version>1.0</version>
-            <type>jar</type>
+            <version>1.0.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/jmathplot.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
@@ -79,6 +85,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>com.google.protobuf.tools</groupId>
